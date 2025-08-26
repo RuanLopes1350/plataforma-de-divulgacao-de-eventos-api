@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Modelo de Evento Deve falhar ao criar evento com status inválido 1`] = `"eventos validation failed: status: \`inexistente\` is not a valid enum value for path \`status\`."`;
