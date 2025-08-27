@@ -9,20 +9,20 @@ services:
       - 27017:27017
     restart: unless-stopped
     
-  api:
-    container_name: plataforma-eventos-api
-    build: ./
-    env_file:
-      - .env
-    environment:
-      - DB_URL=mongodb://mongodb-eventos:27017/IfroEvents
-      - DB_URL_TEST=mongodb://mongodb-eventos:27017/IfroEvents_test
-      - APP_PORT=5015
-    ports:
-      - 5015:5015
-    depends_on:
-      - mongodb
-    restart: unless-stopped
+  # api:
+  #   container_name: plataforma-eventos-api
+  #   build: ./
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - DB_URL=mongodb://mongodb-eventos:27017/IfroEvents
+  #     - DB_URL_TEST=mongodb://mongodb-eventos:27017/IfroEvents_test
+  #     - APP_PORT=5015
+  #   ports:
+  #     - 5015:5015
+  #   depends_on:
+  #     - mongodb
+  #   restart: unless-stopped
         
 volumes:
   vol-mongodb:

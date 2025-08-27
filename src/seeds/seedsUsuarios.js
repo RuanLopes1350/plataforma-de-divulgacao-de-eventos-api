@@ -39,16 +39,22 @@ async function seedUsuarios() {
 
     const usuariosFixos = [
         {
-            nome: "Usuario Teste",
-            email: "devTeste@gmail.com",
+            nome: "Ruan Lopes",
+            email: "ruanlopes@email.com",
             senha: gerarSenhaHash(),
             status: "ativo"
         },
         {
-            nome: "Luis Felipe Lopes",
-            email: "devMaster@gmail.com",
+            nome: "João Vitor",
+            email: "joaovitor@email.com",
             senha: gerarSenhaHash(),
             status: "ativo" 
+        },
+        {
+            nome: "Eduardo Tartas",
+            email: "eduardotartas@email.com",
+            senha: gerarSenhaHash(),
+            status: "ativo"
         }
     ];
 
