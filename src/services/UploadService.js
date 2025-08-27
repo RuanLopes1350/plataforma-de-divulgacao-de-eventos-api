@@ -48,16 +48,16 @@ class UploadService {
             const metadata = await sharp(filePath).metadata();
             const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
-            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                this.removerArquivo(filePath);
+            // if(metadata.height > alturaEsperada || metadata.width > larguraEsperada) {
+            //     this.removerArquivo(filePath);
                 
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'dimensoes',
-                    customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-                });
-            }
+            //     throw new CustomError({
+            //         statusCode: HttpStatusCodes.BAD_REQUEST.code,
+            //         errorType: 'validationError',
+            //         field: 'dimensoes',
+            //         customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+            //     });
+            // }
 
             midia = {
                 _id: new mongoose.Types.ObjectId(),
@@ -86,19 +86,19 @@ class UploadService {
             
             const metadata = await sharp(filePath).metadata();
 
-            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                // Limpa todos os arquivos já processados em caso de erro
-                files.forEach(f => {
-                    this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
-                });
+            // if(metadata.height > alturaEsperada || metadata.width > larguraEsperada) {
+            //     // Limpa todos os arquivos já processados em caso de erro
+            //     files.forEach(f => {
+            //         this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
+            //     });
                 
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'dimensoes',
-                    customMessage: `Dimensões inválidas no arquivo "${file.originalname}". Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-                });
-            }
+            //     throw new CustomError({
+            //         statusCode: HttpStatusCodes.BAD_REQUEST.code,
+            //         errorType: 'validationError',
+            //         field: 'dimensoes',
+            //         customMessage: `Dimensões inválidas no arquivo "${file.originalname}". Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+            //     });
+            // }
 
             const midia = {
                 _id: new mongoose.Types.ObjectId(),
@@ -210,17 +210,17 @@ class UploadService {
                     const tipoParaValidacao = tipo.replace('midia', '').toLowerCase();
                     const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipoParaValidacao];
 
-                    if (metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                        // Limpar todos os arquivos em caso de erro ao validar dimensões
-                        this.limparArquivosProcessados(files);
+                    // if (metadata.height > alturaEsperada || metadata.width > larguraEsperada) {
+                    //     // Limpar todos os arquivos em caso de erro ao validar dimensões
+                    //     this.limparArquivosProcessados(files);
                         
-                        throw new CustomError({
-                            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                            errorType: 'validationError',
-                            field: 'dimensoes',
-                            customMessage: `Dimensões inválidas para ${tipo}. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-                        });
-                    }
+                    //     throw new CustomError({
+                    //         statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    //         errorType: 'validationError',
+                    //         field: 'dimensoes',
+                    //         customMessage: `Dimensões inválidas para ${tipo}. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                    //     });
+                    // }
 
                     midia = {
                         url: `/uploads/${tipoParaValidacao}/${arquivo.filename}`,

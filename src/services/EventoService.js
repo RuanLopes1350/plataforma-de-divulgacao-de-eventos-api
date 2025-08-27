@@ -231,9 +231,9 @@ class EventoService {
     async validarMidiasObrigatorias(evento) {
         const midiaErrors = [];
         
-        if (!evento.midiaVideo || evento.midiaVideo.length === 0) {
-            midiaErrors.push('Vídeo é obrigatório');
-        }
+        // if (!evento.midiaVideo || evento.midiaVideo.length === 0) {
+        //     midiaErrors.push('Vídeo é obrigatório');
+        // }
         
         if (!evento.midiaCapa || evento.midiaCapa.length === 0) {
             midiaErrors.push('Capa é obrigatória');
