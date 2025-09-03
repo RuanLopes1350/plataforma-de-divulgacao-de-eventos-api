@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 import SendMail from '../utils/SendMail.js';
 import TokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
+import MailServiceClient from '../utils/MailServiceClient.js';
 
 import UsuarioRepository from '../repositories/UsuarioRepository.js';
 
@@ -167,7 +168,7 @@ class AuthService {
          * 
          */
 
-        const resetUrl = `http://localhost:5013/auth/?token=${tokenUnico}`;
+        const resetUrl = `${process.env.SYSTEM_URL}/auth/?token=${tokenUnico}`;
         console.log('URL de redefinição de senha:', resetUrl);
         const emailData = {
             to: userEncontrado.email,
@@ -178,16 +179,21 @@ class AuthService {
                 resetUrl: resetUrl,
                 expirationMinutes: 60, // Expiração em minutos
                 year: new Date().getFullYear(),
-                company: process.env.COMPANY_NAME || 'Auth'
+                company: process.env.COMPANY_NAME || 'Plataforma de Eventos'
             }
         };
         console.log('Dados do e-mail:', emailData);
 
 
-        // Criar função para fazer a chamada para enviar o e-mai
+        // Criar função para fazer a chamada para enviar o e-mail
         // Necessário passar apiKey presente em MAIL_API_KEY
         const sendMail = async (emailData) => {
             console.log('Enviando e-mail de recuperação de senha para:', emailData.to);
+            
+            // Implementar timeout configurável
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), process.env.MAIL_API_TIMEOUT || 30000);
+            
             try {
                 const response = await fetch(`${process.env.MAIL_API_URL}/emails/send`, {
                     method: 'POST',
@@ -195,15 +201,33 @@ class AuthService {
                         'Content-Type': 'application/json',
                         'x-api-key': process.env.MAIL_API_KEY
                     },
-                    body: JSON.stringify(emailData)
+                    body: JSON.stringify(emailData),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
+                
                 if (!response.ok) {
-                    throw new Error(`Erro ao enviar e-mail: ${response.status} ${response.statusText}`);
+                    const errorText = await response.text();
+                    throw new Error(`Erro ao enviar e-mail: ${response.status} ${response.statusText} - ${errorText}`);
                 }
+                
                 const responseData = await response.json();
                 console.log('E-mail enviado com sucesso:', responseData);
+                
             } catch (error) {
+                clearTimeout(timeoutId);
                 console.error('Erro ao enviar e-mail:', error);
+                
+                if (error.name === 'AbortError') {
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.REQUEST_TIMEOUT.code,
+                        field: 'E-mail',
+                        details: [],
+                        customMessage: 'Timeout: Serviço de e-mail não respondeu em tempo hábil.'
+                    });
+                }
+                
                 throw new CustomError({
                     statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
                     field: 'E-mail',
