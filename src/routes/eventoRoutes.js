@@ -32,3 +32,18 @@ router
     .delete("/eventos/:eventoId/midia/:tipo/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
 export default router;
+
+/*
+// ✅ POST para adicionar qualquer tipo de mídia. O tipo vai no corpo da requisição (form-data).
+.post("/eventos/:eventoId/midias", AuthMiddleware, uploadMultiploParcial, asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
+
+// ✅ GET para listar todas as mídias ou filtrar por tipo via query param (ex: /midias?tipo=capa)
+.get("/eventos/:eventoId/midias", AuthMiddleware, asyncWrapper(uploadController.listarMidias.bind(uploadController)))
+
+// ✅ DELETE para remover uma mídia específica pelo seu ID único.
+.delete("/eventos/:eventoId/midias/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
+
+colocar filtro na midia para selecinar o tipo (capa, video, carrossel)
+mudar para tudo ser midias
+
+*/
