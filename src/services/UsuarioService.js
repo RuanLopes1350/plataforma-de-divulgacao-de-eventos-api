@@ -85,47 +85,7 @@ class UsuarioService {
 
 
         let usuarioId;
-
-        /* ─── A) Código de 4 caracteres ───────────────────────────── */
-        if (codigo_recupera_senha) {
-            const usuario = await this.repository.buscarPorCodigoRecuperacao(codigo_recupera_senha);
-
-            if (!usuario) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.NOT_FOUND.code,
-                    errorType: 'validationError',
-                    field: 'codigo_recupera_senha',
-                    details: [
-                        {
-                            path: 'codigo_recupera_senha',
-                            message: 'Código de recuperação inválido ou não encontrado.',
-                        },
-                    ],
-                    customMessage: 'Código de recuperação inválido ou não encontrado.',
-                });
-            }
-
-            /* Validação de expiração */
-            const expTime = new Date(usuario.exp_codigo_recupera_senha).getTime();
-            if (!expTime || expTime < Date.now()) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.UNAUTHORIZED.code,
-                    errorType: 'authenticationError',
-                    field: 'codigo_recupera_senha',
-                    details: [
-                        {
-                            path: 'codigo_recupera_senha',
-                            message: 'Código de recuperação expirado.',
-                        },
-                    ],
-                    customMessage: 'Código de recuperação expirado.',
-                });
-            }
-            
-            usuarioId = usuario._id.toString();
-        }
-
-        /* ─── B) Token JWT ────────────────────────────────────────── */
+/* ─── B) Token JWT ────────────────────────────────────────── */
         if (tokenRecuperacao) {
             if (typeof tokenRecuperacao !== 'string' || !tokenRecuperacao.trim()) {
                 throw new CustomError({
