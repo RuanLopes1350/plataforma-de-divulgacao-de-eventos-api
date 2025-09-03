@@ -1,0 +1,35 @@
+{
+  "name": "mail_api_service",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "RuanLopes1350",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src --ignore node_modules --ignore logs src/server.js",
+    "test": "NODE_ENV=test mocha \"test/**/*.spec.js\" --timeout 10000"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "googleapis": "^150.0.1",
+    "handlebars": "^4.7.8",
+    "mjml": "^4.15.3",
+    "nodemailer": "^7.0.4",
+    "path": "^0.12.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "chai": "^5.2.0",
+    "mjml-cli": "^4.15.3",
+    "mocha": "^11.5.0",
+    "nodemon": "^3.1.10",
+    "sinon": "^20.0.0",
+    "supertest": "^7.1.1"
+  }
+}

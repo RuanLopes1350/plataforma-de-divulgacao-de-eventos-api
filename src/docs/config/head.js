@@ -28,8 +28,8 @@ const getSwaggerOptions = () => {
                 version: "1.0.0",
                 description: "API para gestão de eventos e divulgação \n\nÉ necessário autenticar com token JWT antes de utilizar a maioria das rotas, faça isso na rota /login com um email e senha válido. Esta API conta com refresh token, que pode ser obtido na rota /refresh, e com logout, que pode ser feito na rota /logout. Para mais informações, acesse a documentação.",
                 contact: {
-                    name: "Luis Felipe Lopes",
-                    email: "devMaster@gmail.com",
+                    name: "Ruan Lopes",
+                    email: "intel.spec.lopes@gmail.com",
                 },
             },
             servers: getServersInCorrectOrder(),
