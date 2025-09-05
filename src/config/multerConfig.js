@@ -28,30 +28,29 @@ const mimeTypesPermitidos = {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let diretorio;
-    
+    // Tenta obter o eventoId do body, params ou query
+    const eventoId = req.body.eventoId || req.params.eventoId || req.query.eventoId;
+    if (!eventoId) {
+      return cb(new Error("EventoId não informado."), false);
+    }
     if (req.params && req.params.tipo) {
       const tipo = req.params.tipo;
-      diretorio = tiposDiretorios[tipo];
-      
-      if (!diretorio) {
+      diretorio = `uploads/${eventoId}/${tipo}`;
+      if (!['capa', 'carrossel', 'video'].includes(tipo)) {
         return cb(new Error("Tipo de mídia inválido."), false);
       }
-    }
-    // Para uploads no cadastro
-    else if (file.fieldname === 'midiaVideo') {
-      diretorio = 'uploads/video';
+    } else if (file.fieldname === 'midiaVideo') {
+      diretorio = `uploads/${eventoId}/video`;
     } else if (file.fieldname === 'midiaCapa') {
-      diretorio = 'uploads/capa';
+      diretorio = `uploads/${eventoId}/capa`;
     } else if (file.fieldname === 'midiaCarrossel') {
-      diretorio = 'uploads/carrossel';
+      diretorio = `uploads/${eventoId}/carrossel`;
     } else {
       return cb(new Error("Tipo de mídia inválido."), false);
     }
-
     if(!fs.existsSync(diretorio)) {
       fs.mkdirSync(diretorio, { recursive: true });
     }
-
     cb(null, diretorio);
   },
 

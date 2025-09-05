@@ -123,11 +123,12 @@ class UploadService {
         objectIdSchema.parse(eventoId);
 
         const evento = await this.repository.listarTodasMidias(eventoId);
-        console.log(evento.midiaCapa);
+        const urlPrefix = process.env.URL_ATUAL || '';
+        const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
         return {
-            capa: evento.midiaCapa,
-            carrossel: evento.midiaCarrossel,
-            video: evento.midiaVideo
+            capa: addPrefix(evento.midiaCapa),
+            carrossel: addPrefix(evento.midiaCarrossel),
+            video: addPrefix(evento.midiaVideo)
         };
     }
 
@@ -137,7 +138,9 @@ class UploadService {
 
         const evento = await this.repository.listarMidiaCapa(eventoId);
 
-        return { midiaCapa: evento.midiaCapa };
+    const urlPrefix = process.env.URL_ATUAL || '';
+    const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
+    return { midiaCapa: addPrefix(evento.midiaCapa) };
     }
 
     // GET /eventos/:id/midia/video
@@ -146,7 +149,9 @@ class UploadService {
 
         const evento = await this.repository.listarMidiaVideo(eventoId);
 
-        return { midiaVideo: evento.midiaVideo };
+    const urlPrefix = process.env.URL_ATUAL || '';
+    const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
+    return { midiaVideo: addPrefix(evento.midiaVideo) };
     }
     
     // GET /eventos/:id/midia/carrossel
@@ -155,7 +160,9 @@ class UploadService {
 
         const evento = await this.repository.listarMidiaCarrossel(eventoId);
 
-        return { midiaCarrossel: evento.midiaCarrossel };
+    const urlPrefix = process.env.URL_ATUAL || '';
+    const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
+    return { midiaCarrossel: addPrefix(evento.midiaCarrossel) };
     }
 
     //DELETE /eventos/:id/midia/:tipo/:id
