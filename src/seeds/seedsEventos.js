@@ -116,4 +116,53 @@ async function seedEventos(usuarios) {
                 {
                     _id: new mongoose.Types.ObjectId(),
                     url: "/uploads/carrossel/carrosselEvento1.jpg",
-                
+                    tamanhoMb: 1.5,
+                    altura: 720,
+                    largura: 1280,
+                },
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "/uploads/carrossel/carrosselEvento2.jpg",
+                    tamanhoMb: 1.8,
+                    altura: 720,
+                    largura: 1280,
+                },
+            ],
+        }
+    ];
+
+    await Evento.collection.insertMany(eventosFixos);
+    console.log(`${eventosFixos.length} Eventos fixos inseridos com sucesso!`);
+
+    // Const que recebe o mapeamento global para ser usado na criação dos eventos aleatórios
+    const mapping = await globalFakeMapping();
+
+    // Gera eventos aleatórios
+    const eventosAleatorios = [];
+
+    for(let i = 0; i < 20; i++) {
+        eventosAleatorios.push({
+            titulo: mapping.titulo(),
+            descricao: mapping.descricao(),
+            local: mapping.local(),
+            dataEvento: mapping.dataEvento(),
+            organizador: {
+                _id: usuarios[i]._id,
+                nome: usuarios[i].nome
+            },
+            linkInscricao: mapping.linkInscricao(),
+            eventoCriadoEm: mapping.eventoCriadoEm(),
+            tags: mapping.tags(),
+            categoria: mapping.categoria(),
+            status: mapping.status(),
+            midiaVideo: mapping.midiaVideo(),
+            midiaCapa: mapping.midiaCapa(),
+            midiaCarrossel: mapping.midiaCarrossel(),
+        });
+    };
+
+    await Evento.collection.insertMany(eventosAleatorios);
+    console.log(`${eventosAleatorios.length} Eventos aleatórios inseridos com sucesso!`);
+}
+
+export default seedEventos;
