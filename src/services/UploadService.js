@@ -1,5 +1,4 @@
 // src/services/UploadService.js
-
 import mongoose from "mongoose";
 import UploadRepository from "../repositories/UploadRepository.js";
 import EventoService from "./EventoService.js";
@@ -8,7 +7,9 @@ import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, S
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 import logger from "../utils/logger.js";
+dotenv.config();
 
 const midiasDimensoes = {
     carrossel: { altura: 720, largura: 1280 },
@@ -29,7 +30,8 @@ class UploadService {
         const evento = await this.eventoService.ensureEventExists(eventoId);
         await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
         
-        const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
+    // Usa o caminho real do arquivo salvo pelo middleware de upload
+    const filePath = file.path;
         
         let midia;
         
@@ -38,7 +40,7 @@ class UploadService {
             const { altura, largura } = midiasDimensoes[tipo];
             midia = {
                 _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${tipo}/${file.filename}`,
+                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
                 tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
                 altura,
                 largura,
@@ -48,20 +50,22 @@ class UploadService {
             const metadata = await sharp(filePath).metadata();
             const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
-            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                this.removerArquivo(filePath);
-                
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'dimensoes',
-                    customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-                });
-            }
+                if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
+                    const removido = this.removerArquivo(filePath);
+                    if (!removido) {
+                        logger.error(`Falha ao remover arquivo inválido: ${filePath}`);
+                    }
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                        errorType: 'validationError',
+                        field: 'dimensoes',
+                        customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                    });
+                }
 
             midia = {
                 _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${tipo}/${file.filename}`,
+                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
                 tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
                 altura: metadata.height,
                 largura: metadata.width,
@@ -82,14 +86,14 @@ class UploadService {
         const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
         for (const file of files) {
-            const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
-            
+            // Usa o caminho real do arquivo salvo pelo middleware de upload
+            const filePath = file.path;
             const metadata = await sharp(filePath).metadata();
 
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
                 // Limpa todos os arquivos já processados em caso de erro
                 files.forEach(f => {
-                    this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
+                    this.removerArquivo(path.resolve(`/uploads/${eventoId}/${tipo}/${file.filename}`));
                 });
                 
                 throw new CustomError({
@@ -102,7 +106,7 @@ class UploadService {
 
             const midia = {
                 _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${tipo}/${file.filename}`,
+                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
                 tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
                 altura: metadata.height,
                 largura: metadata.width,
@@ -119,7 +123,7 @@ class UploadService {
         objectIdSchema.parse(eventoId);
 
         const evento = await this.repository.listarTodasMidias(eventoId);
-
+        console.log(evento.midiaCapa);
         return {
             capa: evento.midiaCapa,
             carrossel: evento.midiaCarrossel,
