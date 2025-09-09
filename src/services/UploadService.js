@@ -3,6 +3,13 @@ import mongoose from "mongoose";
 import UploadRepository from "../repositories/UploadRepository.js";
 import EventoService from "./EventoService.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
+import { 
+    validarArquivoPorTipo, 
+    validarDimensoesPorTipo, 
+    obterConfigTipo,
+    DIMENSOES_POR_TIPO,
+    ParametrosUploadSchema 
+} from "../utils/validators/schemas/zod/UploadSchema.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import sharp from "sharp";
 import fs from "fs";
@@ -10,12 +17,6 @@ import path from "path";
 import dotenv from "dotenv";
 import logger from "../utils/logger.js";
 dotenv.config();
-
-const midiasDimensoes = {
-    carrossel: { altura: 720, largura: 1280 },
-    capa: { altura: 720, largura: 1280 },
-    video: { altura: 720, largura: 1280 }
-};
 
 class UploadService {
     constructor() {
@@ -28,19 +29,36 @@ class UploadService {
 
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(eventoId, tipo, file, usuarioId) {
+        // Validações usando Zod
         objectIdSchema.parse(eventoId);
+        ParametrosUploadSchema.parse({ id: eventoId, tipo });
     
         const evento = await this.eventoService.ensureEventExists(eventoId);
         await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
         
-    // Usa o caminho real do arquivo salvo pelo middleware de upload
-    const filePath = file.path;
+        // Validar arquivo usando schema Zod específico por tipo
+        try {
+            validarArquivoPorTipo(file, tipo);
+        } catch (error) {
+            const removido = this.removerArquivo(file.path);
+            if (!removido) {
+                logger.error(`Falha ao remover arquivo inválido: ${file.path}`);
+            }
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'arquivo',
+                customMessage: error.errors?.[0]?.message || error.message
+            });
+        }
         
+        // Usa o caminho real do arquivo salvo pelo middleware de upload
+        const filePath = file.path;
         let midia;
         
         if (tipo === 'video') {
-            // Para vídeos, não é usado Sharp pois é usado somente para validar imagens
-            const { altura, largura } = midiasDimensoes[tipo];
+            // Para vídeos, usa dimensões fixas (não processa com Sharp)
+            const { altura, largura } = DIMENSOES_POR_TIPO[tipo];
             midia = {
                 _id: new mongoose.Types.ObjectId(),
                 url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
@@ -49,30 +67,45 @@ class UploadService {
                 largura,
             };
         } else {
-            // Para imagens, é usado para obter os metadados e validar as dimensões
-            const metadata = await sharp(filePath).metadata();
-            const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
+            // Para imagens, processa com Sharp e valida dimensões
+            try {
+                const metadata = await sharp(filePath).metadata();
+                
+                // Validar dimensões usando schema Zod
+                validarDimensoesPorTipo(metadata, tipo);
 
-                if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                    const removido = this.removerArquivo(filePath);
-                    if (!removido) {
-                        logger.error(`Falha ao remover arquivo inválido: ${filePath}`);
-                    }
+                midia = {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
+                    tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
+                    altura: metadata.height,
+                    largura: metadata.width,
+                };
+            } catch (error) {
+                const removido = this.removerArquivo(filePath);
+                if (!removido) {
+                    logger.error(`Falha ao remover arquivo inválido: ${filePath}`);
+                }
+                
+                // Se for erro de validação Zod, usar mensagem específica
+                if (error.errors) {
+                    const config = obterConfigTipo(tipo);
                     throw new CustomError({
                         statusCode: HttpStatusCodes.BAD_REQUEST.code,
                         errorType: 'validationError',
                         field: 'dimensoes',
-                        customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                        customMessage: `Dimensões inválidas. Esperado: ${config.dimensoes.largura}x${config.dimensoes.altura}px, recebido: ${metadata?.width || 'N/A'}x${metadata?.height || 'N/A'}px.`
                     });
                 }
-
-            midia = {
-                _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
-                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
-                altura: metadata.height,
-                largura: metadata.width,
-            };
+                
+                // Erro do Sharp ou outro
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'arquivo',
+                    customMessage: `Erro ao processar arquivo de imagem: ${error.message}`
+                });
+            }
         }
 
         return await this.repository.adicionarMidia(eventoId, tipo, midia);
@@ -80,52 +113,74 @@ class UploadService {
 
     // POST /eventos/:id/midia/carrossel
     async adicionarMultiplasMidias(eventoId, tipo, files, usuarioId) {
+        // Validações usando Zod
         objectIdSchema.parse(eventoId);
+        ParametrosUploadSchema.parse({ id: eventoId, tipo });
     
         const evento = await this.eventoService.ensureEventExists(eventoId);
         await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
         
         const midiasProcessadas = [];
-        const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
+        const config = obterConfigTipo(tipo);
 
         for (const file of files) {
-            // Usa o caminho real do arquivo salvo pelo middleware de upload
-            const filePath = file.path;
-            const metadata = await sharp(filePath).metadata();
+            try {
+                // Validar arquivo usando schema Zod específico por tipo
+                validarArquivoPorTipo(file, tipo);
+                
+                // Processar com Sharp e validar dimensões
+                const filePath = file.path;
+                const metadata = await sharp(filePath).metadata();
+                
+                // Validar dimensões usando schema Zod
+                validarDimensoesPorTipo(metadata, tipo);
 
-            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
+                const midia = {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
+                    tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
+                    altura: metadata.height,
+                    largura: metadata.width,
+                };
+                
+                midiasProcessadas.push(midia);
+            } catch (error) {
                 // Limpa todos os arquivos já processados em caso de erro
                 files.forEach(f => {
                     this.removerArquivo(f.path);
                 });
                 
+                // Determinar tipo de erro e mensagem apropriada
+                let mensagem;
+                if (error.errors) {
+                    // Erro de validação Zod
+                    mensagem = error.errors[0]?.message || error.message;
+                    if (mensagem.includes('Altura inválida') || mensagem.includes('Largura inválida')) {
+                        mensagem = `Dimensões inválidas no arquivo "${file.originalname}". Esperado: ${config.dimensoes.largura}x${config.dimensoes.altura}px.`;
+                    }
+                } else {
+                    // Erro do Sharp ou outro
+                    mensagem = `Erro ao processar arquivo "${file.originalname}": ${error.message}`;
+                }
+                
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
                     errorType: 'validationError',
-                    field: 'dimensoes',
-                    customMessage: `Dimensões inválidas no arquivo "${file.originalname}". Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                    field: error.errors ? 'dimensoes' : 'arquivo',
+                    customMessage: mensagem
                 });
             }
-
-            const midia = {
-                _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
-                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
-                altura: metadata.height,
-                largura: metadata.width,
-            };
-            
-            midiasProcessadas.push(midia);
         }
 
         return await this.repository.adicionarMultiplasMidias(eventoId, tipo, midiasProcessadas);
     }
 
     // GET /eventos/:id/midias
-    async listarTodasMidias(eventoId, filtros = {}) {
+    async listar(req) {
+        const eventoId = req.params.id;
         objectIdSchema.parse(eventoId);
 
-        const midias = await this.repository.listarMidiasComFiltro(eventoId, filtros);
+        const midias = await this.repository.listar(req);
         const urlPrefix = this.getSwaggerBaseUrl() || '';
         
         const addPrefix = (midias, tipo) => Array.isArray(midias) ? midias.map(m => {
@@ -141,8 +196,9 @@ class UploadService {
         }) : [];
 
         // Se há filtro por tipo específico, retorna apenas esse tipo
-        if (filtros.tipo && ['capa', 'video', 'carrossel'].includes(filtros.tipo)) {
-            const tipoSelecionado = filtros.tipo;
+        const { tipo } = req.query;
+        if (tipo && ['capa', 'video', 'carrossel'].includes(tipo)) {
+            const tipoSelecionado = tipo;
             return addPrefix(midias[tipoSelecionado], tipoSelecionado);
         }
 
@@ -153,6 +209,8 @@ class UploadService {
             ...addPrefix(midias.video, 'video')
         ];
     }
+
+
 
 
 
@@ -186,53 +244,66 @@ class UploadService {
             if (!midiasProcessadas.hasOwnProperty(tipo)) continue;
 
             for (const arquivo of arquivos) {
-                const filePath = arquivo.path;
-                let midia;
-                
-                if (tipo === 'midiaVideo') {
-                    const { altura, largura } = midiasDimensoes.video;
-                    midia = {
-                        url: `/uploads/video/${arquivo.filename}`,
-                        tamanhoMb: +(arquivo.size / (1024 * 1024)).toFixed(2),
-                        altura,
-                        largura
-                    };
-                } else {
-                    const metadata = await sharp(filePath).metadata().catch(() => {
-                        // Limpar todos os arquivos em caso de erro ao ler metadados
-                        this.limparArquivosProcessados(files);
-                        throw new CustomError({
-                            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                            errorType: 'validationError',
-                            field: 'arquivo',
-                            customMessage: `Arquivo "${arquivo.originalname}" está corrompido ou não é uma imagem válida.`
-                        });
-                    });
-
+                try {
                     const tipoParaValidacao = tipo.replace('midia', '').toLowerCase();
-                    const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipoParaValidacao];
-
-                    if (metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                        // Limpar todos os arquivos em caso de erro ao validar dimensões
-                        this.limparArquivosProcessados(files);
-                        
-                        throw new CustomError({
-                            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                            errorType: 'validationError',
-                            field: 'dimensoes',
-                            customMessage: `Dimensões inválidas para ${tipo}. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                    
+                    // Validar arquivo usando schema Zod específico por tipo
+                    validarArquivoPorTipo(arquivo, tipoParaValidacao);
+                    
+                    const filePath = arquivo.path;
+                    let midia;
+                    
+                    if (tipo === 'midiaVideo') {
+                        const { altura, largura } = DIMENSOES_POR_TIPO.video;
+                        midia = {
+                            url: `/uploads/video/${arquivo.filename}`,
+                            tamanhoMb: +(arquivo.size / (1024 * 1024)).toFixed(2),
+                            altura,
+                            largura
+                        };
+                    } else {
+                        const metadata = await sharp(filePath).metadata().catch(() => {
+                            throw new Error(`Arquivo "${arquivo.originalname}" está corrompido ou não é uma imagem válida.`);
                         });
-                    }
 
-                    midia = {
-                        url: `/uploads/${tipoParaValidacao}/${arquivo.filename}`,
-                        tamanhoMb: +(arquivo.size / (1024 * 1024)).toFixed(2),
-                        altura: metadata.height,
-                        largura: metadata.width
-                    };
+                        // Validar dimensões usando schema Zod
+                        validarDimensoesPorTipo(metadata, tipoParaValidacao);
+
+                        midia = {
+                            url: `/uploads/${tipoParaValidacao}/${arquivo.filename}`,
+                            tamanhoMb: +(arquivo.size / (1024 * 1024)).toFixed(2),
+                            altura: metadata.height,
+                            largura: metadata.width
+                        };
+                    }
+                    
+                    midiasProcessadas[tipo].push(midia);
+                } catch (error) {
+                    // Limpar todos os arquivos em caso de erro
+                    this.limparArquivosProcessados(files);
+                    
+                    // Determinar mensagem de erro apropriada
+                    let mensagem;
+                    if (error.errors) {
+                        // Erro de validação Zod
+                        mensagem = error.errors[0]?.message || error.message;
+                        const tipoParaValidacao = tipo.replace('midia', '').toLowerCase();
+                        const config = obterConfigTipo(tipoParaValidacao);
+                        if (mensagem.includes('Altura inválida') || mensagem.includes('Largura inválida')) {
+                            mensagem = `Dimensões inválidas para ${tipo}. Esperado: ${config.dimensoes.largura}x${config.dimensoes.altura}px.`;
+                        }
+                    } else {
+                        // Erro do Sharp ou outro
+                        mensagem = error.message;
+                    }
+                    
+                    throw new CustomError({
+                        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                        errorType: 'validationError',
+                        field: error.errors ? 'dimensoes' : 'arquivo',
+                        customMessage: mensagem
+                    });
                 }
-                
-                midiasProcessadas[tipo].push(midia);
             }
         }
 

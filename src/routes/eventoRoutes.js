@@ -1,7 +1,7 @@
 // src/routes/eventoRoutes.js
 
 import express from "express";
-import { uploadMultiploIntegrado, uploadMultiploParcial } from "../config/multerConfig.js";
+import { uploadMultiploParcial } from "../config/multerConfig.js";
 
 import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 import EventoController from '../controllers/EventoController.js';
@@ -14,7 +14,7 @@ const eventoController = new EventoController();  // Instância da classe
 const uploadController = new UploadController();  // Instância da classe
 
 router
-    .post("/eventos/", AuthMiddleware, uploadMultiploIntegrado, asyncWrapper(eventoController.cadastrar.bind(eventoController)))
+    .post("/eventos/", AuthMiddleware, asyncWrapper(eventoController.cadastrar.bind(eventoController)))
     .get("/eventos", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id/qrcode", AuthMiddleware, asyncWrapper(eventoController.gerarQRCode.bind(eventoController)))
@@ -25,7 +25,7 @@ router
 
     // Rotas Adicionais (Mídias)
     .post("/eventos/:id/midia/:tipo", AuthMiddleware, uploadMultiploParcial, asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
-    .get("/eventos/:id/midias", AuthMiddleware, asyncWrapper(uploadController.listarTodasMidias.bind(uploadController)))
+    .get("/eventos/:id/midias", AuthMiddleware, asyncWrapper(uploadController.listar.bind(uploadController)))
     .delete("/eventos/:eventoId/midia/:tipo/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
 export default router;

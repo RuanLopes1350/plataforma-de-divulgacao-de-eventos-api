@@ -1,6 +1,7 @@
 // src/controllers/UploadController.js
 
 import UploadService from '../services/UploadService.js';
+import { ParametrosUploadSchema, QueryListagemSchema } from '../utils/validators/schemas/zod/UploadSchema.js';
 import {
     CommonResponse,
     CustomError,
@@ -41,7 +42,8 @@ class UploadController {
 
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(req, res) {
-        const { id: eventoId, tipo } = req.params;
+        // Validar parâmetros usando Zod
+        const { id: eventoId, tipo } = ParametrosUploadSchema.parse(req.params);
         const usuarioLogado = req.user;
         
         const files = req.files; // Array de arquivos (carrossel)
@@ -71,17 +73,13 @@ class UploadController {
     }
 
     // GET /eventos/:id/midias
-    async listarTodasMidias(req, res) {
-        const { id: eventoId } = req.params;
+    async listar(req, res) {
+        // Validar query parameters usando Zod
+        QueryListagemSchema.parse(req.query);
+        
+        const midias = await this.service.listar(req);
+
         const { tipo } = req.query;
-
-        const filtros = {};
-        if (tipo) {
-            filtros.tipo = tipo;
-        }
-
-        const midias = await this.service.listarTodasMidias(eventoId, filtros);
-
         const mensagem = tipo 
             ? `Mídias do tipo '${tipo}' retornadas com sucesso.`
             : `Mídias do evento retornadas com sucesso.`;

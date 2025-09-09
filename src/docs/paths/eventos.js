@@ -7,23 +7,25 @@ const eventosPath = {
     "post": {
       "tags": ["Eventos"],
       "summary": "Cadastrar novo evento",
-      "description": `**ROTA PROTEGIDA** - Cria um novo evento com mídias opcionais. Aceita multipart/form-data para upload de arquivos.
+      "description": `**ROTA PROTEGIDA** - Cria um novo evento básico sem mídias. Para adicionar mídias, use as rotas de upload específicas após criar o evento.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
       - Evento é automaticamente vinculado ao organizador autenticado
       - Status inicial é sempre 'inativo'
-      - Para multipart/form-data: campos 'capa', 'video' e 'carrossel' para mídias
-      - Validação prévia antes de processar uploads
-      - Em caso de erro após uploads, arquivos são automaticamente removidos
+      - Mídias devem ser adicionadas separadamente após criação
       - Tags devem ser array de strings (mínimo 1 tag)
       - dataEvento deve ser no formato ISO 8601
+      - Para ativar o evento, use a rota PATCH /eventos/{id}/status
       
-      **IMPORTANTE - Como enviar o campo 'tags' no Swagger UI:**
-      - No Swagger UI (multipart/form-data): Digite como JSON array: ["tecnologia", "inovação", "palestras"]
-      - Ou como string separada por vírgula: tecnologia,inovação,palestras
-      - Para application/json: envie como array normal
-      - **ATENÇÃO:** Tags é campo OBRIGATÓRIO - mínimo 1 tag necessária`,
+      **Fluxo Recomendado:**
+      1. Criar evento (esta rota)
+      2. Adicionar mídias com POST /eventos/{id}/midia/{tipo}
+      3. Ativar evento com PATCH /eventos/{id}/status
+      
+      **IMPORTANTE - Tags:**
+      - Tags é campo OBRIGATÓRIO - mínimo 1 tag necessária
+      - Deve ser enviado como array de strings: ["tecnologia", "inovação", "palestras"]`,
       "security": [
         {
           "bearerAuth": []
@@ -31,11 +33,6 @@ const eventosPath = {
       ],
       "requestBody": {
         "content": {
-          "multipart/form-data": {
-            "schema": {
-              "$ref": "#/components/schemas/EventoCadastroFormData"
-            }
-          },
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/EventoCadastro"
@@ -60,19 +57,20 @@ const eventosPath = {
                       "_id": "60b5f8c8d8f8f8f8f8f8f8",
                       "titulo": "Workshop de Node.js",
                       "descricao": "Aprenda Node.js do zero ao avançado",
-                      "dataInicio": "2024-01-15T10:00:00.000Z",
-                      "dataTermino": "2024-01-15T18:00:00.000Z",
+                      "dataEvento": "2024-01-15T10:00:00.000Z",
                       "local": "Centro de Convenções",
-                      "endereco": "Rua das Flores, 123",
                       "linkInscricao": "https://exemplo.com/inscricao",
                       "categoria": "Tecnologia",
-                      "tipoEvento": "workshop",
-                      "capacidade": 50,
+                      "tags": ["tecnologia", "workshop", "nodejs"],
                       "organizador": {
                         "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
                         "nome": "João Silva"
                       },
                       "status": "inativo",
+                      "midiaVideo": [],
+                      "midiaCapa": [],
+                      "midiaCarrossel": [],
+                      "permissoes": [],
                       "createdAt": "2024-01-01T12:00:00.000Z",
                       "updatedAt": "2024-01-01T12:00:00.000Z"
                     }

@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
+import { TAMANHO_MAXIMO_MB } from "../utils/validators/schemas/zod/UploadSchema.js";
 
 // Define os tipos de mídias aceitos e seus respectivos diretórios
 const tiposDiretorios = {
@@ -64,7 +65,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 25 * 1024 * 1024, // Equivalente para 25 MB
+    fileSize: Math.max(...Object.values(TAMANHO_MAXIMO_MB)) * 1024 * 1024, // Usa o maior limite entre todos os tipos
   },
   fileFilter: (req, file, cb) => {
     const extensao = path.extname(file.originalname).toLowerCase();
@@ -97,8 +98,9 @@ const upload = multer({
       return cb(new Error(`Tipo de arquivo inválido para '${tipo}'. MIME type não permitido.`));
     }
 
-    // Nota: A validação de dimensões será feita no service após o upload,
-    // pois não é possível validar dimensões de imagem no fileFilter sem salvar o arquivo
+    // Nota: Validações detalhadas (dimensões, tamanho específico) são feitas no service
+    // usando schemas Zod após o upload, pois não é possível validar dimensões 
+    // de imagem no fileFilter sem salvar o arquivo
     cb(null, true);
   }
 });
@@ -107,7 +109,7 @@ const upload = multer({
 const uploadMultiplo = multer({
   storage: storage,
   limits: {
-    fileSize: 25 * 1024 * 1024,
+    fileSize: Math.max(...Object.values(TAMANHO_MAXIMO_MB)) * 1024 * 1024,
     files: 12 // Limita o número de arquivos a 12 na requisição
   },
   fileFilter: (req, file, cb) => {

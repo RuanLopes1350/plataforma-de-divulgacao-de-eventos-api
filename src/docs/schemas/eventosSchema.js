@@ -41,7 +41,7 @@ const eventosSchemas = {
         items: {
           type: "string"
         },
-        description: "Tags do evento (array de strings obrigatório - mínimo 1 tag). No multipart/form-data, pode ser enviado como JSON array ou string separada por vírgula",
+        description: "Tags do evento (array de strings obrigatório - mínimo 1 tag)",
         example: ["tecnologia", "inovação", "palestras"],
         minItems: 1
       },
@@ -352,60 +352,7 @@ const eventosSchemas = {
   EventoCadastro: {
     "$ref": "#/components/schemas/EventoPost"
   },
-  EventoCadastroFormData: {
-    type: "object",
-    properties: {
-      titulo: {
-        type: "string",
-        description: "Título do evento"
-      },
-      descricao: {
-        type: "string", 
-        description: "Descrição do evento"
-      },
-      local: {
-        type: "string",
-        description: "Local do evento"
-      },
-      dataEvento: {
-        type: "string",
-        format: "date-time",
-        description: "Data e hora do evento"
-      },
-      linkInscricao: {
-        type: "string",
-        description: "Link para inscrição"
-      },
-      categoria: {
-        type: "string",
-        description: "Categoria do evento"
-      },
-      tags: {
-        type: "string",
-        description: "Tags do evento (**OBRIGATÓRIO** - mínimo 1 tag). Para multipart/form-data: envie como JSON string '[\"tag1\", \"tag2\"]' ou como CSV 'tag1,tag2,tag3'. Para application/json: use array normal.",
-        example: '["tecnologia", "inovação", "palestras"]'
-      },
-      midiaCapa: {
-        type: "string",
-        format: "binary",
-        description: "Imagem de capa do evento"
-      },
-      midiaVideo: {
-        type: "string", 
-        format: "binary",
-        description: "Vídeo do evento"
-      },
-      midiaCarrossel: {
-        type: "array",
-        items: {
-          type: "string",
-          format: "binary"
-        },
-        description: "Imagens do carrossel"
-      }
-    },
-    required: ["titulo", "descricao", "local", "dataEvento", "linkInscricao", "categoria", "tags"]
-  },
+
   EventoCadastroResponse: {
     "$ref": "#/components/schemas/EventoDetalhes"
   },

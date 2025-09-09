@@ -99,21 +99,42 @@ class UploadRepository {
         return eventoAtualizado;
     }
 
-    // GET /eventos/:id/midias
-    async listarTodasMidias(eventoId) {
-        const evento = await this._ensureEventExists(eventoId);
-        return evento;
-    }
+    // GET /eventos/:id/midias com suporte a filtros
+    async listar(req) {
+        const eventoId = req.params.id;
+        
+        if (!eventoId) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'eventoId',
+                customMessage: 'ID do evento é obrigatório.'
+            });
+        }
 
-    // GET /eventos/:id/midias (com filtro)
-    async listarMidiasComFiltro(eventoId, filtros = {}) {
         const evento = await this._ensureEventExists(eventoId);
         
+        const { tipo } = req.query;
+
         const filterBuilder = new MidiaFilterBuilder()
-            .comTipo(filtros.tipo);
+            .comTipo(tipo);
+
+        if (typeof filterBuilder.build !== 'function') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                errorType: 'internalServerError',
+                field: 'MidiaFilterBuilder',
+                customMessage: 'Erro interno no sistema de filtros de mídia.'
+            });
+        }
+
+        const filtros = filterBuilder.build();
         
+        // Aplica os filtros construídos pelo FilterBuilder
         return filterBuilder.aplicar(evento);
     }
+
+
 
 
 
