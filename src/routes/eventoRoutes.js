@@ -26,9 +26,6 @@ router
     // Rotas Adicionais (Mídias)
     .post("/eventos/:id/midia/:tipo", AuthMiddleware, uploadMultiploParcial, asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
     .get("/eventos/:id/midias", AuthMiddleware, asyncWrapper(uploadController.listarTodasMidias.bind(uploadController)))
-    .get("/eventos/:id/midia/capa", AuthMiddleware, asyncWrapper(uploadController.listarMidiaCapa.bind(uploadController)))
-    .get("/eventos/:id/midia/video", AuthMiddleware, asyncWrapper(uploadController.listarMidiaVideo.bind(uploadController)))
-    .get("/eventos/:id/midia/carrossel/:index", AuthMiddleware, asyncWrapper(uploadController.listarMidiaCarrossel.bind(uploadController)))
     .delete("/eventos/:eventoId/midia/:tipo/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
 export default router;

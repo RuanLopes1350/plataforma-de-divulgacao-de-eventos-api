@@ -23,6 +23,9 @@ class UploadService {
         this.eventoService = new EventoService();
     }
 
+
+
+
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(eventoId, tipo, file, usuarioId) {
         objectIdSchema.parse(eventoId);
@@ -93,7 +96,7 @@ class UploadService {
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
                 // Limpa todos os arquivos já processados em caso de erro
                 files.forEach(f => {
-                    this.removerArquivo(path.resolve(`/uploads/${eventoId}/${tipo}/${file.filename}`));
+                    this.removerArquivo(f.path);
                 });
                 
                 throw new CustomError({
@@ -119,51 +122,39 @@ class UploadService {
     }
 
     // GET /eventos/:id/midias
-    async listarTodasMidias(eventoId) {
+    async listarTodasMidias(eventoId, filtros = {}) {
         objectIdSchema.parse(eventoId);
 
-        const evento = await this.repository.listarTodasMidias(eventoId);
-        const urlPrefix = process.env.URL_ATUAL || '';
-        const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
-        return {
-            capa: addPrefix(evento.midiaCapa),
-            carrossel: addPrefix(evento.midiaCarrossel),
-            video: addPrefix(evento.midiaVideo)
-        };
+        const midias = await this.repository.listarMidiasComFiltro(eventoId, filtros);
+        const urlPrefix = this.getSwaggerBaseUrl() || '';
+        
+        const addPrefix = (midias, tipo) => Array.isArray(midias) ? midias.map(m => {
+            const midia = m._doc ? m._doc : m;
+            return {
+                tipo,
+                _id: midia._id,
+                url: midia.url ? `${urlPrefix}${midia.url}` : midia.url,
+                tamanhoMb: midia.tamanhoMb,
+                altura: midia.altura,
+                largura: midia.largura
+            };
+        }) : [];
+
+        // Se há filtro por tipo específico, retorna apenas esse tipo
+        if (filtros.tipo && ['capa', 'video', 'carrossel'].includes(filtros.tipo)) {
+            const tipoSelecionado = filtros.tipo;
+            return addPrefix(midias[tipoSelecionado], tipoSelecionado);
+        }
+
+        // Se não há filtro, retorna todos os tipos em um array único
+        return [
+            ...addPrefix(midias.capa, 'capa'),
+            ...addPrefix(midias.carrossel, 'carrossel'),
+            ...addPrefix(midias.video, 'video')
+        ];
     }
 
-    // GET /eventos/:id/midia/capa
-    async listarMidiaCapa(eventoId) {
-        objectIdSchema.parse(eventoId);
 
-        const evento = await this.repository.listarMidiaCapa(eventoId);
-
-    const urlPrefix = process.env.URL_ATUAL || '';
-    const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
-    return { midiaCapa: addPrefix(evento.midiaCapa) };
-    }
-
-    // GET /eventos/:id/midia/video
-    async listarMidiaVideo(eventoId) {
-        objectIdSchema.parse(eventoId);
-
-        const evento = await this.repository.listarMidiaVideo(eventoId);
-
-    const urlPrefix = process.env.URL_ATUAL || '';
-    const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
-    return { midiaVideo: addPrefix(evento.midiaVideo) };
-    }
-    
-    // GET /eventos/:id/midia/carrossel
-    async listarMidiaCarrossel(eventoId) {
-        objectIdSchema.parse(eventoId);
-
-        const evento = await this.repository.listarMidiaCarrossel(eventoId);
-
-    const urlPrefix = process.env.URL_ATUAL || '';
-    const addPrefix = (midias) => Array.isArray(midias) ? midias.map(m => ({ ...m, url: m.url ? `${urlPrefix}${m.url}` : m.url })) : [];
-    return { midiaCarrossel: addPrefix(evento.midiaCarrossel) };
-    }
 
     //DELETE /eventos/:id/midia/:tipo/:id
     async deletarMidia(eventoId, tipo, midiaId, usuarioId) {
@@ -265,8 +256,20 @@ class UploadService {
         else {
             caminhoCompleto = path.resolve(caminho);
         }
-        return fs.existsSync(caminhoCompleto) && 
-               fs.rmSync(caminhoCompleto, { force: true, recursive: false }) === undefined;
+        
+        try {
+            if (fs.existsSync(caminhoCompleto)) {
+                fs.rmSync(caminhoCompleto, { force: true, recursive: false });
+                logger.info(`Arquivo removido com sucesso: ${caminhoCompleto}`);
+                return true;
+            } else {
+                logger.warn(`Arquivo não encontrado para remoção: ${caminhoCompleto}`);
+                return false;
+            }
+        } catch (error) {
+            logger.error(`Erro ao remover arquivo ${caminhoCompleto}: ${error.message}`);
+            return false;
+        }
     }
 
     /**
@@ -304,6 +307,15 @@ class UploadService {
             });
         });
     }
+
+    getSwaggerBaseUrl() {
+        const env = process.env.NODE_ENV;
+        if (env === 'production') {
+            return process.env.SWAGGER_PROD_URL;
+        }
+            return process.env.SWAGGER_DEV_URL;
+    }   
+
 }
 
 export default UploadService;

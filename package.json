@@ -1,9 +1,9 @@
 {
   "author": "Eduado Tartas, Ruan Lopes, João",
   "license": "MIT",
-  "name": "primeiraapi",
+  "name": "eventos-api",
   "version": "1.0.0",
-  "description": "Primeira API com Node.js",
+  "description": "eventos-api",
   "main": "src/app.js",
   "type": "module",
   "scripts": {

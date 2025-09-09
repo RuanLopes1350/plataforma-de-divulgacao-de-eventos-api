@@ -1,6 +1,7 @@
 // src/repositories/UploadRepository.js
 
 import EventoModel from "../models/Evento.js";
+import MidiaFilterBuilder from "./filters/MidiaFilterBuilder.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
 class UploadRepository { 
@@ -9,6 +10,8 @@ class UploadRepository {
     } = {}) {
         this.model = eventoModel;
     }
+
+
 
     // Método para garantir que evento existe
     async _ensureEventExists(eventoId) {
@@ -102,23 +105,17 @@ class UploadRepository {
         return evento;
     }
 
-    // GET /eventos/:id/midia/capa
-    async listarMidiaCapa(eventoId) {
+    // GET /eventos/:id/midias (com filtro)
+    async listarMidiasComFiltro(eventoId, filtros = {}) {
         const evento = await this._ensureEventExists(eventoId);
-        return { midiaCapa: evento.midiaCapa };
-    }    
-    
-    // GET /eventos/:id/midia/video
-    async listarMidiaVideo(eventoId) {
-        const evento = await this._ensureEventExists(eventoId);
-        return { midiaVideo: evento.midiaVideo };
+        
+        const filterBuilder = new MidiaFilterBuilder()
+            .comTipo(filtros.tipo);
+        
+        return filterBuilder.aplicar(evento);
     }
 
-    // GET /eventos/:id/midia/carrossel
-    async listarMidiaCarrossel(eventoId) {
-        const evento = await this._ensureEventExists(eventoId);
-        return { midiaCarrossel: evento.midiaCarrossel };
-    }
+
 
     //DELETE /eventos/:id/midia/:tipo/:id
     async deletarMidia(eventoId, tipo, midiaId) {

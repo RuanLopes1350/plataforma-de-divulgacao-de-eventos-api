@@ -73,135 +73,23 @@ class UploadController {
     // GET /eventos/:id/midias
     async listarTodasMidias(req, res) {
         const { id: eventoId } = req.params;
+        const { tipo } = req.query;
 
-        const midias = await this.service.listarTodasMidias(eventoId);
+        const filtros = {};
+        if (tipo) {
+            filtros.tipo = tipo;
+        }
 
-        return CommonResponse.success(res, midias, 200, `Mídias do evento retornadas com sucesso.`);
+        const midias = await this.service.listarTodasMidias(eventoId, filtros);
+
+        const mensagem = tipo 
+            ? `Mídias do tipo '${tipo}' retornadas com sucesso.`
+            : `Mídias do evento retornadas com sucesso.`;
+
+        return CommonResponse.success(res, midias, 200, mensagem);
     }
 
-    // GET /eventos/:id/midia/capa
-    async listarMidiaCapa(req, res) {
-        const { id: eventoId } = req.params;
 
-        const capa = await this.service.listarMidiaCapa(eventoId);
-
-        if (!capa.midiaCapa || capa.midiaCapa.length === 0) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'capa',
-                details: [],
-                customMessage: 'Capa do evento não encontrada.'
-            });
-        }
-
-        const midiacapa = capa.midiaCapa[0];
-        const filename = path.basename(midiacapa.url);
-        const uploadsDir = path.join(currentDir, '../../uploads/capa');
-        const filePath = path.join(uploadsDir, filename);
-
-        // Verifica se o arquivo existe
-        if (!fs.existsSync(filePath)) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'arquivo',
-                details: [],
-                customMessage: 'Arquivo de capa não encontrado no servidor.'
-            });
-        }
-
-        const contentType = this._getContentType(filename);
-        res.setHeader('Content-Type', contentType);
-        return res.sendFile(filePath);
-    }
-
-    // GET /eventos/:id/midia/video
-    async listarMidiaVideo(req, res) {
-        const { id: eventoId } = req.params;
-
-        const video = await this.service.listarMidiaVideo(eventoId);
-
-        if (!video.midiaVideo || video.midiaVideo.length === 0) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'video',
-                details: [],
-                customMessage: 'Vídeo do evento não encontrado.'
-            });
-        }
-
-        const midiavideo = video.midiaVideo[0];
-        const filename = path.basename(midiavideo.url);
-        const uploadsDir = path.join(currentDir, '../../uploads/video');
-        const filePath = path.join(uploadsDir, filename);
-
-        // Verifica se o arquivo existe
-        if (!fs.existsSync(filePath)) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'arquivo',
-                details: [],
-                customMessage: 'Arquivo de vídeo não encontrado no servidor.'
-            });
-        }
-
-        const contentType = this._getContentType(filename);
-        res.setHeader('Content-Type', contentType);
-        return res.sendFile(filePath);
-    }
-
-    // GET /eventos/:id/midia/carrossel/:index
-    async listarMidiaCarrossel(req, res) {
-        const { id: eventoId, index } = req.params;
-
-        const carrossel = await this.service.listarMidiaCarrossel(eventoId);
-
-        if (!carrossel.midiaCarrossel || carrossel.midiaCarrossel.length === 0) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'carrossel',
-                details: [],
-                customMessage: 'Carrossel do evento não encontrado.'
-            });
-        }
-
-        // Converte index para número e valida
-        const indexNum = parseInt(index) || 0;
-        
-        if (indexNum < 0 || indexNum >= carrossel.midiaCarrossel.length) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'index',
-                details: [],
-                customMessage: `Índice ${indexNum} não encontrado. O carrossel possui ${carrossel.midiaCarrossel.length} imagem(ns).`
-            });
-        }
-
-        // Retorna a imagem do índice especificado
-        const imagemSelecionada = carrossel.midiaCarrossel[indexNum];
-        const filename = path.basename(imagemSelecionada.url);
-        const uploadsDir = path.join(currentDir, '../../uploads/carrossel');
-        const filePath = path.join(uploadsDir, filename);
-
-        if (!fs.existsSync(filePath)) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND.code,
-                errorType: 'notFound',
-                field: 'arquivo',
-                details: [],
-                customMessage: 'Arquivo de carrossel não encontrado no servidor.'
-            });
-        }
-
-        const contentType = this._getContentType(filename);
-        res.setHeader('Content-Type', contentType);
-        return res.sendFile(filePath);
-    }
 
     //DELETE /eventos/:id/midia/:tipo/:id
     async deletarMidia(req, res) {

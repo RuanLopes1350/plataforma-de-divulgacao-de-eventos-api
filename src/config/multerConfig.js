@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let diretorio;
     // Tenta obter o eventoId do body, params ou query
-    const eventoId = req.body.eventoId || req.params.eventoId || req.query.eventoId;
+    const eventoId = req.body.eventoId || req.params.id || req.params.eventoId || req.query.eventoId;
     if (!eventoId) {
       return cb(new Error("EventoId não informado."), false);
     }
@@ -97,6 +97,8 @@ const upload = multer({
       return cb(new Error(`Tipo de arquivo inválido para '${tipo}'. MIME type não permitido.`));
     }
 
+    // Nota: A validação de dimensões será feita no service após o upload,
+    // pois não é possível validar dimensões de imagem no fileFilter sem salvar o arquivo
     cb(null, true);
   }
 });

@@ -292,16 +292,17 @@ const uploadPath = {
   "/eventos/{id}/midias": {
     "get": {
       "tags": ["Upload de Mídias"],
-      "summary": "Listar todas as mídias do evento",
-      "description": `Retorna todas as mídias associadas ao evento organizadas por tipo (capa, video e carrossel).
+      "summary": "Listar mídias do evento (com filtro opcional)",
+      "description": `Retorna as mídias do evento, com opção de filtrar por tipo específico.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
-      - Retorna arrays separados por tipo de mídia
-      - Cada mídia inclui informações completas (url, tamanhoMb, altura, largura)
-      - URLs são relativas ao servidor da aplicação
-      - Ordem das mídias no carrossel é preservada
-      - Retorna arrays vazios se não houver mídias`,
+      - **SEM FILTRO**: Retorna array único com todas as mídias, cada uma incluindo campo 'tipo'
+      - **COM FILTRO**: Retorna apenas mídias do tipo especificado no parâmetro 'tipo'
+      - Cada mídia inclui: _id, tipo, url (com prefixo do servidor), tamanhoMb, altura, largura
+      - URLs incluem prefixo baseado no ambiente (dev/prod)
+      - Para carrossel: retorna todas as imagens (sem seleção de índice)
+      - Retorna array vazio se não houver mídias do tipo especificado`,
       "security": [
         {
           "bearerAuth": []
@@ -317,6 +318,16 @@ const uploadPath = {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
           }
+        },
+        {
+          "name": "tipo",
+          "in": "query",
+          "required": false,
+          "description": "Filtrar por tipo de mídia específico",
+          "schema": {
+            "type": "string",
+            "enum": ["capa", "video", "carrossel"]
+          }
         }
       ],
       "responses": {
@@ -325,62 +336,140 @@ const uploadPath = {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MidiasEventoResponse"
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": 200
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/MidiaCompleta"
+                    }
+                  },
+                  "errors": {
+                    "type": "array",
+                    "items": {},
+                    "example": []
+                  }
+                }
               },
               "examples": {
-                "com_todas_midias": {
-                  "summary": "Evento com todas as mídias",
+                "todas_midias_sem_filtro": {
+                  "summary": "Todas as mídias (sem filtro)",
                   "value": {
-                    "statusCode": 200,
+                    "error": false,
+                    "code": 200,
                     "message": "Mídias do evento retornadas com sucesso.",
-                    "data": {
-                      "capa": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
-                          "url": "/uploads/capa/1673432100000-capa.jpg",
-                          "tamanhoMb": 2.45,
-                          "altura": 720,
-                          "largura": 1280
-                        }
-                      ],
-                      "carrossel": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fb",
-                          "url": "/uploads/carrossel/1673432100000-img1.jpg",
-                          "tamanhoMb": 1.85,
-                          "altura": 720,
-                          "largura": 1280
-                        },
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
-                          "url": "/uploads/carrossel/1673432100000-img2.jpg",
-                          "tamanhoMb": 2.12,
-                          "altura": 720,
-                          "largura": 1280
-                        }
-                      ],
-                      "video": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fd",
-                          "url": "/uploads/video/1673432100000-video.mp4",
-                          "tamanhoMb": 25.8,
-                          "altura": 720,
-                          "largura": 1280
-                        }
-                      ]
-                    }
+                    "data": [
+                      {
+                        "tipo": "capa",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/capa/1673432100000-capa.jpg",
+                        "tamanhoMb": 2.45,
+                        "altura": 720,
+                        "largura": 1280
+                      },
+                      {
+                        "tipo": "carrossel",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fb",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/carrossel/1673432100000-img1.jpg",
+                        "tamanhoMb": 1.85,
+                        "altura": 720,
+                        "largura": 1280
+                      },
+                      {
+                        "tipo": "carrossel",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/carrossel/1673432100000-img2.jpg",
+                        "tamanhoMb": 2.12,
+                        "altura": 720,
+                        "largura": 1280
+                      },
+                      {
+                        "tipo": "video",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fd",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/video/1673432100000-video.mp4",
+                        "tamanhoMb": 25.8,
+                        "altura": 720,
+                        "largura": 1280
+                      }
+                    ],
+                    "errors": []
+                  }
+                },
+                "filtro_carrossel": {
+                  "summary": "Filtro por carrossel (?tipo=carrossel)",
+                  "value": {
+                    "error": false,
+                    "code": 200,
+                    "message": "Mídias do tipo 'carrossel' retornadas com sucesso.",
+                    "data": [
+                      {
+                        "tipo": "carrossel",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fb",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/carrossel/1673432100000-img1.jpg",
+                        "tamanhoMb": 1.85,
+                        "altura": 720,
+                        "largura": 1280
+                      },
+                      {
+                        "tipo": "carrossel",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/carrossel/1673432100000-img2.jpg",
+                        "tamanhoMb": 2.12,
+                        "altura": 720,
+                        "largura": 1280
+                      }
+                    ],
+                    "errors": []
+                  }
+                },
+                "filtro_capa": {
+                  "summary": "Filtro por capa (?tipo=capa)",
+                  "value": {
+                    "error": false,
+                    "code": 200,
+                    "message": "Mídias do tipo 'capa' retornadas com sucesso.",
+                    "data": [
+                      {
+                        "tipo": "capa",
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                        "url": "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/capa/1673432100000-capa.jpg",
+                        "tamanhoMb": 2.45,
+                        "altura": 720,
+                        "largura": 1280
+                      }
+                    ],
+                    "errors": []
                   }
                 },
                 "sem_midias": {
                   "summary": "Evento sem mídias",
                   "value": {
-                    "statusCode": 200,
+                    "error": false,
+                    "code": 200,
                     "message": "Mídias do evento retornadas com sucesso.",
-                    "data": {
-                      "capa": [],
-                      "carrossel": [],
-                      "video": []
-                    }
+                    "data": [],
+                    "errors": []
+                  }
+                },
+                "filtro_sem_resultado": {
+                  "summary": "Filtro sem resultado (?tipo=video)",
+                  "value": {
+                    "error": false,
+                    "code": 200,
+                    "message": "Mídias do tipo 'video' retornadas com sucesso.",
+                    "data": [],
+                    "errors": []
                   }
                 }
               }
@@ -434,348 +523,7 @@ const uploadPath = {
       }
     }
   },
-  "/eventos/{id}/midia/capa": {
-    "get": {
-      "tags": ["Upload de Mídias"],
-      "summary": "Obter imagem de capa do evento",
-      "description": "**ROTA PÚBLICA** - Retorna o arquivo binário da imagem de capa do evento. O Content-Type é definido automaticamente baseado na extensão do arquivo (jpg, jpeg, png). Esta rota não requer autenticação para permitir acesso público às imagens.",
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "ID do evento (ObjectId válido)",
-          "schema": {
-            "type": "string",
-            "pattern": "^[0-9a-fA-F]{24}$"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Imagem de capa retornada com sucesso",
-          "headers": {
-            "Content-Type": {
-              "description": "Tipo de conteúdo da imagem",
-              "schema": {
-                "type": "string",
-                "enum": ["image/jpeg", "image/png", "image/jpg"]
-              }
-            }
-          },
-          "content": {
-            "image/jpeg": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário da imagem JPEG - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
-            },
-            "image/png": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário da imagem PNG - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
-            },
-            "image/jpg": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário da imagem JPG - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
-            }
-          }
-        },
-        "404": {
-          "description": "Capa não encontrada",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "capa_nao_encontrada": {
-                  "summary": "Evento não possui capa",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Capa do evento não encontrada.",
-                    "details": []
-                  }
-                },
-                "arquivo_capa_nao_encontrado": {
-                  "summary": "Arquivo de capa não encontrado no servidor",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Arquivo de capa não encontrado no servidor.",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "/eventos/{id}/midia/video": {
-    "get": {
-      "tags": ["Upload de Mídias"],
-      "summary": "Obter vídeo do evento",
-      "description": `**ROTA PÚBLICA** - Retorna o arquivo binário do vídeo do evento.
-      
-      **Regras de Negócio:**
-      - Rota pública (não requer autenticação) 
-      - Retorna o arquivo binário diretamente (não JSON)
-      - Content-Type é definido automaticamente baseado na extensão do arquivo
-      - Suporta formatos: mp4
-      - Erro 404 se não houver vídeo ou arquivo não existir fisicamente`,
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "ID do evento (ObjectId válido)",
-          "schema": {
-            "type": "string",
-            "pattern": "^[0-9a-fA-F]{24}$"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Vídeo retornado com sucesso",
-          "headers": {
-            "Content-Type": {
-              "description": "Tipo de conteúdo do vídeo",
-              "schema": {
-                "type": "string",
-                "enum": ["video/mp4", "video/avi", "video/mov"]
-              }
-            }
-          },
-          "content": {
-            "video/mp4": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário do vídeo MP4 - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
-            },
-            "video/avi": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário do vídeo AVI - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
-            },
-            "video/mov": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário do vídeo MOV - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
-            }
-          }
-        },
-        "404": {
-          "description": "Vídeo não encontrado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "video_nao_encontrado": {
-                  "summary": "Evento não possui vídeo",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Vídeo do evento não encontrado.",
-                    "details": []
-                  }
-                },
-                "arquivo_nao_encontrado": {
-                  "summary": "Arquivo físico não existe",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Arquivo de vídeo não encontrado no servidor.",
-                    "details": []
-                  }
-                },
-                "evento_nao_encontrado": {
-                  "summary": "Evento não existe",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Evento não encontrado.",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "500": swaggerCommonResponses[500]()
-      }
-    }
-  },
-  "/eventos/{id}/midia/carrossel/{index}": {
-    "get": {
-      "tags": ["Upload de Mídias"],
-      "summary": "Obter imagem específica do carrossel",
-      "description": `**ROTA PÚBLICA** - Retorna o arquivo binário de uma imagem específica do carrossel baseada no índice.
-      
-      **Regras de Negócio:**
-      - Rota pública (não requer autenticação)
-      - Retorna o arquivo binário diretamente (não JSON)
-      - Content-Type é definido automaticamente baseado na extensão do arquivo
-      - Suporta formatos: jpg, jpeg, png
-      - Índice baseado em 0 (primeira imagem = índice 0)
-      - Erro 404 se não houver carrossel, índice inválido ou arquivo não existir fisicamente`,
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "ID do evento (ObjectId válido)",
-          "schema": {
-            "type": "string",
-            "pattern": "^[0-9a-fA-F]{24}$"
-          }
-        },
-        {
-          "name": "index",
-          "in": "path",
-          "required": true,
-          "description": "Índice da imagem no carrossel (baseado em 0)",
-          "schema": {
-            "type": "integer",
-            "minimum": 0
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Imagem do carrossel retornada com sucesso",
-          "headers": {
-            "Content-Type": {
-              "description": "Tipo de conteúdo da imagem",
-              "schema": {
-                "type": "string",
-                "enum": ["image/jpeg", "image/png", "image/jpg"]
-              }
-            }
-          },
-          "content": {
-            "image/jpeg": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário da imagem JPEG do carrossel - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
-            },
-            "image/png": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário da imagem PNG do carrossel - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
-            },
-            "image/jpg": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "Arquivo binário da imagem JPG do carrossel - Para visualizar, abra a URL diretamente no navegador"
-              },
-              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
-            }
-          }
-        },
-        "400": {
-          "description": "ID do evento inválido",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "evento_id_invalido": {
-                  "summary": "ID do evento inválido",
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "Carrossel ou imagem não encontrada",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "carrossel_nao_encontrado": {
-                  "summary": "Evento não possui carrossel",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Carrossel do evento não encontrado.",
-                    "details": []
-                  }
-                },
-                "indice_invalido": {
-                  "summary": "Índice fora do range",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Índice 5 não encontrado. O carrossel possui 3 imagem(ns).",
-                    "details": []
-                  }
-                },
-                "arquivo_nao_encontrado": {
-                  "summary": "Arquivo físico não existe",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Arquivo de carrossel não encontrado no servidor.",
-                    "details": []
-                  }
-                },
-                "evento_nao_encontrado": {
-                  "summary": "Evento não existe",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Evento não encontrado.",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "500": swaggerCommonResponses[500]()
-      }
-    }
-  },
+
   "/eventos/{eventoId}/midia/{tipo}/{midiaId}": {
     "delete": {
       "tags": ["Upload de Mídias"],
