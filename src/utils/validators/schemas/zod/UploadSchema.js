@@ -32,11 +32,6 @@ const ArquivoBaseSchema = z.object({
     fieldname: z.string().optional(),
     originalname: z.string().min(1, 'Nome original do arquivo é obrigatório'),
     encoding: z.string().optional(),
-    buffer: z.instanceof(Buffer, {
-        message: 'Buffer do arquivo é inválido'
-    }).refine((buffer) => buffer.length > 0, {
-        message: 'O arquivo não pode estar vazio'
-    }),
     size: z.number()
         .gt(0, 'O tamanho do arquivo deve ser maior que zero')
 }).passthrough();
