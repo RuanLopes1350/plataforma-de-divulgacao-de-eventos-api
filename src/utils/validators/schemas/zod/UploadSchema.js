@@ -1,8 +1,6 @@
 // src/utils/validators/schemas/zod/UploadSchema.js
 
-import {
-    z
-} from 'zod';
+import { z } from 'zod';
 
 // Configurações de dimensões por tipo de mídia
 const DIMENSOES_POR_TIPO = {
