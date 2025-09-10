@@ -9,6 +9,7 @@ import sharp from "sharp";
 import fs from "fs";
 import path from "path";
 import logger from "../utils/logger.js";
+import redimensionarImagem from './RedimensionarService.js';
 
 const midiasDimensoes = {
     carrossel: { altura: 720, largura: 1280 },
@@ -28,10 +29,30 @@ class UploadService {
     
         const evento = await this.eventoService.ensureEventExists(eventoId);
         await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
+        let midia;
         
         const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
+
+        /*
+        @
+        @ EXEMPLO DE USO DA FUNÇÃO DE REDIMENSIONAMENTO COM SHARP
+        @
+        */
+        if (tipo === 'video' || tipo === 'capa') {
+            const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
+            await redimensionarImagem(filePath, larguraEsperada, alturaEsperada)
+
+            const metadata = await sharp(filePath).metadata();
+
+            midia = {
+                _id: new mongoose.Types.ObjectId(),
+                url: `/uploads/${tipo}/${file.filename}`,
+                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
+                altura: metadata.height,
+                largura: metadata.width,
+            };
+        }
         
-        let midia;
         
         if (tipo === 'video') {
             // Para vídeos, não é usado Sharp pois é usado somente para validar imagens

@@ -28,9 +28,9 @@ const EventoSchemaBase = z.object({
     tags: z.array(z.string().min(1)).min(1, 'Insira pelo menos uma tag'),
     categoria: z.string().min(1, 'Campo categoria é obrigatório'),
     status: z.enum(['ativo', 'inativo']).default('inativo'),
-    midiaVideo: z.array(MidiaSchema).default([]),
-    midiaCapa: z.array(MidiaSchema).default([]),
-    midiaCarrossel: z.array(MidiaSchema).default([]),
+    // midiaVideo: z.array(MidiaSchema).default([]),
+    // midiaCapa: z.array(MidiaSchema).default([]),
+    // midiaCarrossel: z.array(MidiaSchema).default([]),
 });
 
 const EventoSchema = EventoSchemaBase.refine((data) => {
