@@ -1,0 +1,70 @@
+# ────────────────────────────────────────────────
+# Dependências
+# ────────────────────────────────────────────────
+node_modules/
+sendmail1350.json
+client_secret.json
+
+# ────────────────────────────────────────────────
+# Credenciais e variáveis de ambiente
+# ────────────────────────────────────────────────
+.env
+auth/apiKeys.json     # suas chaves de API
+
+# ────────────────────────────────────────────────
+# Artefatos de build/empacotamento
+# ────────────────────────────────────────────────
+dist/
+build/
+coverage/             # relatórios de teste
+tmp/
+temp/
+.cache/
+.nyc_output/          # cobertura do nyc/istanbul
+.eslintcache
+
+# ────────────────────────────────────────────────
+# Logs & relatórios
+# ────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+debug.log
+
+# ────────────────────────────────────────────────
+# Ferramentas de testes
+# ────────────────────────────────────────────────
+# Jest, Mocha, etc.
+.jest/
+jest-html-reporters/
+*.lcov
+
+# ────────────────────────────────────────────────
+# Artefatos de templates EMails (se gerar HTML estático)
+# ────────────────────────────────────────────────
+mailer/templates/**/compiled/
+# (remova se você **não** gera versões compiladas dos MJML)
+
+# ────────────────────────────────────────────────
+# Documentação gerada
+# ────────────────────────────────────────────────
+docs/.vuepress/dist/
+docs/_book/
+*.pdf
+
+# ────────────────────────────────────────────────
+# IDEs/Editors
+# ────────────────────────────────────────────────
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+
+# ────────────────────────────────────────────────
+# Sistema operacional
+# ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

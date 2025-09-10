@@ -1,0 +1,85 @@
+<mjml>
+  <mj-head>
+    <mj-title>Bem-vindo(a) ao Sistema - Primeiro Acesso</mj-title>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Helvetica, Arial, sans-serif" />
+      <mj-text color="#374151" font-size="16px" line-height="1.5" />
+      <mj-button background-color="#3b82f6" color="#ffffff" border-radius="6px"
+                 font-size="16px" font-weight="600" inner-padding="12px 24px" />
+    </mj-attributes>
+  </mj-head>
+
+  <mj-body background-color="#f9fafb">
+    <mj-section padding="24px 0">
+      <mj-column width="600px" background-color="#ffffff" border-radius="8px" padding="32px">
+        <!-- Saudação -->
+        <mj-text font-size="24px" font-weight="700" color="#111827">
+          Bem-vindo(a) ao {{company}}, {{name}}! 🎉
+        </mj-text>
+
+        <!-- Mensagem principal -->
+        <mj-text font-size="16px" padding-top="16px">
+          Sua conta foi criada com sucesso! Para começar a usar o sistema, você precisa definir sua senha de acesso.
+        </mj-text>
+
+        <!-- Informações de acesso -->
+        <mj-text font-size="16px" font-weight="600" padding-top="24px">
+          Suas credenciais de acesso:
+        </mj-text>
+        
+        <mj-text font-size="16px" padding-top="8px">
+          <strong>Matrícula:</strong> {{matricula}}
+        </mj-text>
+
+        <!-- Bloco do código destacado -->
+        <mj-text align="center" font-size="32px" font-weight="700" letter-spacing="4px"
+                 color="#111827" background-color="#f3f4f6" padding="24px 16px"
+                 border-radius="8px" margin="24px 0">
+          {{verificationCode}}
+        </mj-text>
+
+        <!-- Instruções passo a passo -->
+        <mj-text font-size="16px" font-weight="600" padding-top="24px">
+          Como definir sua senha:
+        </mj-text>
+
+        <mj-text font-size="16px" padding-top="8px">
+          1. Acesse o sistema pelo link: <a href="{{systemUrl}}" style="color: #3b82f6; text-decoration: none;">{{systemUrl}}</a>
+        </mj-text>
+
+        <mj-text font-size="16px" padding-top="4px">
+          2. Use sua <strong>matrícula</strong> e o <strong>código acima</strong> para definir sua primeira senha
+        </mj-text>
+
+        <mj-text font-size="16px" padding-top="4px">
+          3. Após definir a senha, faça login normalmente com matrícula e senha
+        </mj-text>
+
+        <!-- Botão de acesso -->
+        <mj-button href="{{systemUrl}}" padding-top="24px">
+          Acessar Sistema
+        </mj-button>
+
+        <!-- Informações importantes -->
+        <mj-text font-size="14px" color="#6b7280" padding-top="24px">
+          <strong>Importante:</strong> Este código expira em {{expirationHours}} horas. Guarde sua matrícula em local seguro, pois ela será necessária para todos os logins futuros.
+        </mj-text>
+
+        <!-- Aviso de segurança -->
+        <mj-text font-size="12px" color="#9ca3af" padding-top="16px">
+          Se você não solicitou este acesso, entre em contato com o administrador do sistema imediatamente.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Rodapé -->
+    <mj-section padding="0 0 24px">
+      <mj-column width="600px">
+        <mj-text font-size="12px" color="#9ca3af" align="center">
+          © {{year}} {{company}} · Todos os direitos reservados
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
