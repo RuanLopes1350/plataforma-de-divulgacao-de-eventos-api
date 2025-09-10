@@ -1,16 +1,17 @@
 {
-  "author": "Luis Felipe Lopes",
+  "author": "Eduado Tartas, Ruan Lopes, João",
   "license": "MIT",
-  "name": "primeiraapi",
+  "name": "eventos-api",
   "version": "1.0.0",
-  "description": "Primeira API com Node.js",
+  "description": "eventos-api",
   "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon server.js",
-    "seed": "node src/seeds/seeds.js",
+    "dev": "docker compose -f docker-compose.dev.yml up --build",
+    "seed": "docker exec -it eventos-api node src/seeds/seeds.js",
     "test": "jest --coverage --detectOpenHandles",
-    "start": "node server.js"
+    "start": "node server.js",
+    "docker": "docker compose -f docker-compose.yml up --build -d"
   },
   "keywords": [],
   "dependencies": {
@@ -25,6 +26,7 @@
     "express-fileupload": "^1.5.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "minio": "^8.0.5",
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",

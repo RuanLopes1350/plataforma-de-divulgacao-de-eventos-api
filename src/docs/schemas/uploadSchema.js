@@ -33,8 +33,46 @@ const MidiaSchema = {
   required: ["_id", "url", "tamanhoMb", "altura", "largura"]
 };
 
-// Definição original do uploadSchemas
+const MidiaCompleta = {
+  type: "object",
+  properties: {
+    tipo: {
+      type: "string",
+      enum: ["capa", "video", "carrossel"],
+      description: "Tipo da mídia",
+      example: "capa"
+    },
+    _id: {
+      type: "string",
+      description: "ID único da mídia",
+      example: "507f1f77bcf86cd799439012"
+    },
+    url: {
+      type: "string",
+      description: "URL completa da mídia (com prefixo do servidor)",
+      example: "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/capa/1673432100000-capa.jpg"
+    },
+    tamanhoMb: {
+      type: "number",
+      description: "Tamanho do arquivo em MB",
+      example: 2.45
+    },
+    altura: {
+      type: "number",
+      description: "Altura da mídia em pixels",
+      example: 720
+    },
+    largura: {
+      type: "number",
+      description: "Largura da mídia em pixels",
+      example: 1280
+    }
+  },
+  required: ["tipo", "_id", "url", "tamanhoMb", "altura", "largura"]
+};
+
 const uploadSchemas = {
+  MidiaCompleta,
   UploadResponse: {
     type: "object",
     properties: {
@@ -263,5 +301,6 @@ export default uploadSchemas;
 export { 
   generateUploadExamples, 
   createDeepCopies,
-  MidiaSchema
+  MidiaSchema,
+  MidiaCompleta
 };

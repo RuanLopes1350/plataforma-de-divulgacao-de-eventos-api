@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import EventoService from '../services/EventoService.js';
-import UploadService from '../services/UploadService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
 import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
@@ -21,16 +20,14 @@ import QRCode from 'qrcode';
 class EventoController {
     constructor() {
         this.service = new EventoService();
-        this.uploadService = new UploadService();
     }
 
     // POST /eventos
     async cadastrar(req, res) {
         // Pega o usuário autenticado
         const usuarioLogado = req.user;
-        const files = req.files || {};
 
-        let dadosEvento = {
+        const dadosEvento = {
             ...req.body,
             organizador: {
                 _id: usuarioLogado._id,
@@ -38,7 +35,7 @@ class EventoController {
             }
         };
 
-        // PREPROCESSAMENTO: Converte tags de string para array em multipart/form-data
+        // PREPROCESSAMENTO: Converte tags de string para array se necessário
         if (dadosEvento.tags && typeof dadosEvento.tags === 'string') {
             try {
                 // Tenta fazer parse como JSON primeiro (formato: ["tag1", "tag2"])
@@ -49,42 +46,11 @@ class EventoController {
             }
         }
 
-        const dadosParaValidacaoPrevia = {
-            ...dadosEvento,
-            midiaVideo: [],
-            midiaCapa: [],
-            midiaCarrossel: []
-        };
+        // Validação dos dados do evento (sem mídias)
+        const parseData = EventoSchema.parse(dadosEvento);
         
-        const validacaoPrevia = EventoSchema.safeParse(dadosParaValidacaoPrevia);
-        
-        if (!validacaoPrevia.success) {
-            if (Object.keys(files).length > 0) {
-                this.uploadService.limparArquivosProcessados(files);
-            }
-            
-            throw validacaoPrevia.error;
-        }
-
-        if (Object.keys(files).length > 0) {
-            const midiasProcessadas = await this.uploadService.processarArquivosParaCadastro(files);
-            dadosEvento = { ...dadosEvento, ...midiasProcessadas };
-        }
-
-        const parseData = EventoSchema.safeParse(dadosEvento);
-        if (!parseData.success) {
-            if (Object.keys(files).length > 0) {
-                this.uploadService.limparArquivosProcessados(files);
-            }
-            throw parseData.error;
-        }
-
-        const data = await this.service.cadastrar(parseData.data).catch(error => {
-            if (Object.keys(files).length > 0) {
-                this.uploadService.limparArquivosProcessados(files);
-            }
-            throw error;
-        });
+        // Cadastra o evento
+        const data = await this.service.cadastrar(parseData);
         
         return CommonResponse.created(res, data);
     }

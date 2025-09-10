@@ -1,6 +1,7 @@
 // src/repositories/UploadRepository.js
 
 import EventoModel from "../models/Evento.js";
+import MidiaFilterBuilder from "./filters/MidiaFilterBuilder.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
 class UploadRepository { 
@@ -9,6 +10,8 @@ class UploadRepository {
     } = {}) {
         this.model = eventoModel;
     }
+
+
 
     // Método para garantir que evento existe
     async _ensureEventExists(eventoId) {
@@ -96,29 +99,44 @@ class UploadRepository {
         return eventoAtualizado;
     }
 
-    // GET /eventos/:id/midias
-    async listarTodasMidias(eventoId) {
+    // GET /eventos/:id/midias com suporte a filtros
+    async listar(req) {
+        const eventoId = req.params.id;
+        
+        if (!eventoId) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'eventoId',
+                customMessage: 'ID do evento é obrigatório.'
+            });
+        }
+
         const evento = await this._ensureEventExists(eventoId);
-        return evento;
+        
+        const { tipo } = req.query;
+
+        const filterBuilder = new MidiaFilterBuilder()
+            .comTipo(tipo);
+
+        if (typeof filterBuilder.build !== 'function') {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                errorType: 'internalServerError',
+                field: 'MidiaFilterBuilder',
+                customMessage: 'Erro interno no sistema de filtros de mídia.'
+            });
+        }
+
+        const filtros = filterBuilder.build();
+        
+        // Aplica os filtros construídos pelo FilterBuilder
+        return filterBuilder.aplicar(evento);
     }
 
-    // GET /eventos/:id/midia/capa
-    async listarMidiaCapa(eventoId) {
-        const evento = await this._ensureEventExists(eventoId);
-        return { midiaCapa: evento.midiaCapa };
-    }    
-    
-    // GET /eventos/:id/midia/video
-    async listarMidiaVideo(eventoId) {
-        const evento = await this._ensureEventExists(eventoId);
-        return { midiaVideo: evento.midiaVideo };
-    }
 
-    // GET /eventos/:id/midia/carrossel
-    async listarMidiaCarrossel(eventoId) {
-        const evento = await this._ensureEventExists(eventoId);
-        return { midiaCarrossel: evento.midiaCarrossel };
-    }
+
+
 
     //DELETE /eventos/:id/midia/:tipo/:id
     async deletarMidia(eventoId, tipo, midiaId) {

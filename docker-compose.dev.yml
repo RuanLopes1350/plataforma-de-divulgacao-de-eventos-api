@@ -1,24 +1,35 @@
+# docker-compose.dev.yml
+
 services:
+  # Serviço da API em modo desenvolvimento
+  api:
+    container_name: eventos-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    environment:
+      - TERM=xterm
+    env_file:
+      - ./.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npx nodemon --legacy-watch server.js
+    depends_on:
+      - mongo
+
   mongo:
     image: mongo:8
     container_name: eventos-mongodb
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - mongo-data-dev:/data/db
     command: mongod --quiet --logpath /dev/null
     restart: always
-  
-  api:
-    container_name: eventos-api
-    build: .
-    ports:
-      - "${API_PORT}:${API_PORT}"
-    env_file:
-      - ./.env
-    depends_on:
-      - mongo
-    
+
   mailsender:
     container_name: mailsender-service
     build:
@@ -34,6 +45,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    
+
 volumes:
-  mongo-data:
+  mongo-data-dev:

@@ -1,21 +1,30 @@
 // src/services/UploadService.js
-
 import mongoose from "mongoose";
 import UploadRepository from "../repositories/UploadRepository.js";
 import EventoService from "./EventoService.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import {
+    validarArquivoPorTipo,
+    validarDimensoesPorTipo,
+    obterConfigTipo,
+    DIMENSOES_POR_TIPO,
+    ParametrosUploadSchema
+} from "../utils/validators/schemas/zod/UploadSchema.js";
+import {
+    CommonResponse,
+    CustomError,
+    HttpStatusCodes,
+    errorHandler,
+    messages,
+    StatusService,
+    asyncWrapper
+} from '../utils/helpers/index.js';
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 import logger from "../utils/logger.js";
-import redimensionarImagem from './RedimensionarService.js';
-
-const midiasDimensoes = {
-    carrossel: { altura: 720, largura: 1280 },
-    capa: { altura: 720, largura: 1280 },
-    video: { altura: 720, largura: 1280 }
-};
+dotenv.config();
 
 class UploadService {
     constructor() {
@@ -23,21 +32,25 @@ class UploadService {
         this.eventoService = new EventoService();
     }
 
+    // ================================
+    // MÉTODOS PRINCIPAIS
+    // ================================
+
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(eventoId, tipo, file, usuarioId) {
+        // Validações usando Zod
         objectIdSchema.parse(eventoId);
-    
+        ParametrosUploadSchema.parse({
+            id: eventoId,
+            tipo
+        });
+
         const evento = await this.eventoService.ensureEventExists(eventoId);
         await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
-        let midia;
-        
-        const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
 
         /*
         @
         @ EXEMPLO DE USO DA FUNÇÃO DE REDIMENSIONAMENTO COM SHARP
-        @
-        */
         if (tipo === 'video' || tipo === 'capa') {
             const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
             await redimensionarImagem(filePath, larguraEsperada, alturaEsperada)
@@ -52,37 +65,46 @@ class UploadService {
                 largura: metadata.width,
             };
         }
+        */
         
-        
+        validarArquivoPorTipo(file, tipo);
+
+        // Usa o caminho real do arquivo salvo pelo middleware de upload
+        const filePath = file.path;
+        let midia;
+
         if (tipo === 'video') {
-            // Para vídeos, não é usado Sharp pois é usado somente para validar imagens
-            const { altura, largura } = midiasDimensoes[tipo];
+            // Para vídeos, usa dimensões fixas (não processa com Sharp)
+            const {
+                altura,
+                largura
+            } = DIMENSOES_POR_TIPO[tipo];
             midia = {
                 _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${tipo}/${file.filename}`,
+                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
                 tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
                 altura,
                 largura,
             };
         } else {
-            // Para imagens, é usado para obter os metadados e validar as dimensões
-            const metadata = await sharp(filePath).metadata();
-            const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
+            // Para imagens, processa com Sharp e valida dimensões
 
-            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                this.removerArquivo(filePath);
-                
+            const metadata = await sharp(filePath).metadata();
+
+            // Validar dimensões usando schema Zod
+            if (!validarDimensoesPorTipo(metadata, tipo)) {
+                const config = obterConfigTipo(tipo);
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
                     errorType: 'validationError',
                     field: 'dimensoes',
-                    customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                    customMessage: `Dimensões inválidas. Esperado: ${config.dimensoes.largura}x${config.dimensoes.altura}px, recebido: ${metadata?.width || 'N/A'}x${metadata?.height || 'N/A'}px.`
                 });
             }
 
             midia = {
                 _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${tipo}/${file.filename}`,
+                url: `/uploads/${eventoId}/${tipo}/${file.filename}`,
                 tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
                 altura: metadata.height,
                 largura: metadata.width,
@@ -92,87 +114,41 @@ class UploadService {
         return await this.repository.adicionarMidia(eventoId, tipo, midia);
     }
 
-    // POST /eventos/:id/midia/carrossel
-    async adicionarMultiplasMidias(eventoId, tipo, files, usuarioId) {
+    // GET /eventos/:id/midias
+    async listar(req) {
+        const eventoId = req.params.id;
         objectIdSchema.parse(eventoId);
-    
-        const evento = await this.eventoService.ensureEventExists(eventoId);
-        await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
-        
-        const midiasProcessadas = [];
-        const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
-        for (const file of files) {
-            const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
-            
-            const metadata = await sharp(filePath).metadata();
+        const midias = await this.repository.listar(req);
+        const urlPrefix = this.getSwaggerBaseUrl() || '';
 
-            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                // Limpa todos os arquivos já processados em caso de erro
-                files.forEach(f => {
-                    this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
-                });
-                
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: 'dimensoes',
-                    customMessage: `Dimensões inválidas no arquivo "${file.originalname}". Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-                });
-            }
-
-            const midia = {
-                _id: new mongoose.Types.ObjectId(),
-                url: `/uploads/${tipo}/${file.filename}`,
-                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
-                altura: metadata.height,
-                largura: metadata.width,
+        const addPrefix = (midias, tipo) => Array.isArray(midias) ? midias.map(m => {
+            const midia = m._doc ? m._doc : m;
+            return {
+                tipo,
+                _id: midia._id,
+                url: midia.url ? `${urlPrefix}${midia.url}` : midia.url,
+                tamanhoMb: midia.tamanhoMb,
+                altura: midia.altura,
+                largura: midia.largura
             };
-            
-            midiasProcessadas.push(midia);
+        }) : [];
+
+        // Se há filtro por tipo específico, retorna apenas esse tipo
+        const {
+            tipo
+        } = req.query;
+        if (tipo && ['capa', 'video', 'carrossel'].includes(tipo)) {
+            const tipoSelecionado = tipo;
+            return addPrefix(midias[tipoSelecionado], tipoSelecionado);
         }
 
-        return await this.repository.adicionarMultiplasMidias(eventoId, tipo, midiasProcessadas);
-    }
-
-    // GET /eventos/:id/midias
-    async listarTodasMidias(eventoId) {
-        objectIdSchema.parse(eventoId);
-
-        const evento = await this.repository.listarTodasMidias(eventoId);
-
-        return {
-            capa: evento.midiaCapa,
-            carrossel: evento.midiaCarrossel,
-            video: evento.midiaVideo
-        };
-    }
-
-    // GET /eventos/:id/midia/capa
-    async listarMidiaCapa(eventoId) {
-        objectIdSchema.parse(eventoId);
-
-        const evento = await this.repository.listarMidiaCapa(eventoId);
-
-        return { midiaCapa: evento.midiaCapa };
-    }
-
-    // GET /eventos/:id/midia/video
-    async listarMidiaVideo(eventoId) {
-        objectIdSchema.parse(eventoId);
-
-        const evento = await this.repository.listarMidiaVideo(eventoId);
-
-        return { midiaVideo: evento.midiaVideo };
-    }
-    
-    // GET /eventos/:id/midia/carrossel
-    async listarMidiaCarrossel(eventoId) {
-        objectIdSchema.parse(eventoId);
-
-        const evento = await this.repository.listarMidiaCarrossel(eventoId);
-
-        return { midiaCarrossel: evento.midiaCarrossel };
+        // Se não há filtro, retorna todos os tipos em um array único
+        return [
+            ...addPrefix(midias.capa, 'capa'),
+            ...addPrefix(midias.carrossel, 'carrossel'),
+            ...addPrefix(midias.video, 'video')
+        ];
     }
 
     //DELETE /eventos/:id/midia/:tipo/:id
@@ -184,109 +160,48 @@ class UploadService {
         await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
 
         const midiaRemovida = await this.repository.deletarMidia(eventoId, tipo, midiaId);
-        
+
         this.removerArquivo(midiaRemovida.url);
 
         return midiaRemovida;
     }
 
-    /**
-     * Processa arquivos para cadastro de evento
-     */
-    async processarArquivosParaCadastro(files) {
-        const midiasProcessadas = {
-            midiaVideo: [],
-            midiaCapa: [],
-            midiaCarrossel: []
-        };
-
-        // Processa cada tipo de mídia
-        for (const [tipo, arquivos] of Object.entries(files)) {
-            if (!midiasProcessadas.hasOwnProperty(tipo)) continue;
-
-            for (const arquivo of arquivos) {
-                const filePath = arquivo.path;
-                let midia;
-                
-                if (tipo === 'midiaVideo') {
-                    const { altura, largura } = midiasDimensoes.video;
-                    midia = {
-                        url: `/uploads/video/${arquivo.filename}`,
-                        tamanhoMb: +(arquivo.size / (1024 * 1024)).toFixed(2),
-                        altura,
-                        largura
-                    };
-                } else {
-                    const metadata = await sharp(filePath).metadata().catch(() => {
-                        // Limpar todos os arquivos em caso de erro ao ler metadados
-                        this.limparArquivosProcessados(files);
-                        throw new CustomError({
-                            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                            errorType: 'validationError',
-                            field: 'arquivo',
-                            customMessage: `Arquivo "${arquivo.originalname}" está corrompido ou não é uma imagem válida.`
-                        });
-                    });
-
-                    const tipoParaValidacao = tipo.replace('midia', '').toLowerCase();
-                    const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipoParaValidacao];
-
-                    if (metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                        // Limpar todos os arquivos em caso de erro ao validar dimensões
-                        this.limparArquivosProcessados(files);
-                        
-                        throw new CustomError({
-                            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                            errorType: 'validationError',
-                            field: 'dimensoes',
-                            customMessage: `Dimensões inválidas para ${tipo}. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-                        });
-                    }
-
-                    midia = {
-                        url: `/uploads/${tipoParaValidacao}/${arquivo.filename}`,
-                        tamanhoMb: +(arquivo.size / (1024 * 1024)).toFixed(2),
-                        altura: metadata.height,
-                        largura: metadata.width
-                    };
-                }
-                
-                midiasProcessadas[tipo].push(midia);
-            }
-        }
-
-        return midiasProcessadas;
-    }
+    // ================================
+    // MÉTODOS UTILITÁRIOS
+    // ================================
 
     /**
      * Remove arquivo de forma única, método criado para ser reutilizado
      */
     removerArquivo(caminho) {
         let caminhoCompleto;
-        
+
         // Se é uma URL relativa, converte para caminho absoluto
         if (caminho.startsWith('/uploads/')) {
             caminhoCompleto = path.join(process.cwd(), caminho);
-        } 
+        }
         // Se é uma URL relativa, monta o caminho
         else if (caminho.startsWith('/')) {
             caminhoCompleto = path.join(process.cwd(), caminho);
-        }
-        else {
+        } else {
             caminhoCompleto = path.resolve(caminho);
         }
-        return fs.existsSync(caminhoCompleto) && 
-               fs.rmSync(caminhoCompleto, { force: true, recursive: false }) === undefined;
-    }
 
-    /**
-     * Limpa todos os arquivos de um upload múltiplo em caso de erro ao cadastrar evento
-     */
-    limparArquivosProcessados(files) {
-        for (const [tipo, arquivos] of Object.entries(files)) {
-            for (const arquivo of arquivos) {
-                this.removerArquivo(arquivo.path);
+        try {
+            if (fs.existsSync(caminhoCompleto)) {
+                fs.rmSync(caminhoCompleto, {
+                    force: true,
+                    recursive: false
+                });
+                logger.info(`Arquivo removido com sucesso: ${caminhoCompleto}`);
+                return true;
+            } else {
+                logger.warn(`Arquivo não encontrado para remoção: ${caminhoCompleto}`);
+                return false;
             }
+        } catch (error) {
+            logger.error(`Erro ao remover arquivo ${caminhoCompleto}: ${error.message}`);
+            return false;
         }
     }
 
@@ -295,13 +210,13 @@ class UploadService {
      */
     limparMidiasDoEvento(evento) {
         const tiposMidia = ['midiaVideo', 'midiaCapa', 'midiaCarrossel'];
-        
+
         let arquivosRemovidos = 0;
         let totalArquivos = 0;
 
         tiposMidia.forEach(campo => {
             const midias = evento[campo] || [];
-            
+
             midias.forEach(midia => {
                 if (!midia.url || !midia.url.startsWith('/')) {
                     return;
@@ -314,6 +229,15 @@ class UploadService {
             });
         });
     }
+
+    getSwaggerBaseUrl() {
+        const env = process.env.NODE_ENV;
+        if (env === 'production') {
+            return process.env.SWAGGER_PROD_URL;
+        }
+        return process.env.SWAGGER_DEV_URL;
+    }
+
 }
 
 export default UploadService;

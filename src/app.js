@@ -21,6 +21,10 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Servir arquivos estáticos da pasta uploads
+import path from 'path';
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 /* ───────────── 3. Rotas ───────────── */
 routes(app);
 
