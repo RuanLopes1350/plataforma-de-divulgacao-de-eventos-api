@@ -3,10 +3,6 @@ import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
 const midiaSchema = new mongoose.Schema({
-    id: { 
-        type: Number, 
-        required: true 
-    },
     midiTipo: { 
         type: String, 
         required: true 
@@ -15,7 +11,7 @@ const midiaSchema = new mongoose.Schema({
         type: String, 
         required: true 
     }
-}, { _id: false });
+});
 
 const permissaoSchema = new mongoose.Schema({
     usuario: {
@@ -83,12 +79,12 @@ class Evento {
                     required: true 
                 },
                 cor: { 
-                    type: String, 
-                    required: true 
+                    type: Number, 
+                    default: 0 
                 },
                 animacao: { 
-                    type: String, 
-                    required: true 
+                    type: Number, 
+                    default: 0  
                 },
                 status: { 
                     type: Number, 
@@ -98,6 +94,10 @@ class Evento {
                 midia: {
                     type: [midiaSchema],
                     default: []
+                },
+                qrcode: {
+                    type: midiaSchema,
+                    required: false
                 },
                 permissoes: [permissaoSchema],
             },
