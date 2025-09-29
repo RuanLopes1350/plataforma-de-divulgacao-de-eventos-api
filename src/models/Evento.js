@@ -56,8 +56,7 @@ class Evento {
                     required: true 
                 },
                 link: { 
-                    type: String, 
-                    required: true 
+                    type: String,
                 },
                 organizador: {
                     _id: {
@@ -71,8 +70,9 @@ class Evento {
                     },
                 },
                 tags: { 
-                    type: String, 
-                    required: true 
+                    type: [String],
+                    required: true,
+                    default: []
                 },
                 categoria: { 
                     type: String, 
@@ -94,10 +94,6 @@ class Evento {
                 midia: {
                     type: [midiaSchema],
                     default: []
-                },
-                qrcode: {
-                    type: midiaSchema,
-                    required: false
                 },
                 permissoes: [permissaoSchema],
             },

@@ -132,7 +132,37 @@ const EventoSchema = z.object({
     path: ['dataFim']
 });
 
-// Schema para atualizações (todos os campos opcionais exceto IDs)
-const EventoUpdateSchema = EventoSchema.omit({ organizador: true }).partial();
+// Schema para atualizações (todos os campos opcionais exceto organizador)
+const EventoUpdateSchema = z.object({
+    titulo: z.string().min(1, 'Campo titulo é obrigatório').optional(),
+    descricao: z.string().min(1, 'Campo descrição é obrigatório').optional(),
+    local: z.string().min(1, 'Campo local é obrigatório').optional(),
+    dataInicio: z.coerce.date().optional(),
+    dataFim: z.coerce.date().optional(),
+    link: z.string()
+        .optional()
+        .refine((v) => v === undefined || v === '' || URL_REGEX.test(v), {
+            message: 'Link inválido'
+        }),
+    tags: z.array(z.string().min(1, 'Tag não pode ser vazia')).optional(),
+    categoria: z.enum([
+        'academico', 'palestra', 'workshop', 'seminario', 'congresso', 'minicurso',
+        'cultural', 'esportivo', 'social', 'cientifico', 'extensao', 'pesquisa',
+        'feira', 'mostra', 'competicao', 'formatura', 'vestibular', 'enem',
+        'institucional', 'outros'
+    ]).optional(),
+    cor: z.number().int().nonnegative().optional(),
+    animacao: z.number().int().nonnegative().optional(),
+    status: z.number().int().optional(),
+    midia: z.array(MidiaSchema).optional(),
+}).refine((data) => {
+    if (data.dataInicio && data.dataFim) {
+        return new Date(data.dataFim).getTime() >= new Date(data.dataInicio).getTime();
+    }
+    return true;
+}, {
+    message: 'dataFim deve ser igual ou posterior a dataInicio',
+    path: ['dataFim']
+});
 
 export { EventoSchema, EventoUpdateSchema, midiaUploadValidationSchema };
