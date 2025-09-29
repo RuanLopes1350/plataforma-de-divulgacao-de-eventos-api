@@ -26,11 +26,11 @@ export const EventoQuerySchema = z.object({
     .optional()
     .transform((val) => val?.trim()),
 
-  // Campo de filtragem por tags (array de strings)
+  // Campo de filtragem por tags (string para busca parcial)
   tags: z
     .string()
     .optional()
-    .transform((val) => val?.split(',').map(tag => tag.trim())),
+    .transform((val) => val?.trim()),
 
   // Campo para filtrar por tipo específico de evento (usado pelo totem)
   tipo: z
@@ -41,19 +41,22 @@ export const EventoQuerySchema = z.object({
       { message: "Tipo deve ser 'historico', 'futuro' ou 'ativo'" }
     ),
 
-  // Campo de filtragem por status
+  // Campo de filtragem por status numérico (0 = inativo, 1 = ativo)
   status: z
     .union([
       z.string()
         .refine(
-          (value) => !value || ["ativo", "inativo"].includes(value),
-          { message: "Status deve ser 'ativo' ou 'inativo'" }
-        ),
-      z.array(
-        z.string().refine(
-          (value) => ["ativo", "inativo"].includes(value),
-          { message: "Cada status deve ser 'ativo' ou 'inativo'" }
+          (value) => !value || ["0", "1"].includes(value),
+          { message: "Status deve ser '0' (inativo) ou '1' (ativo)" }
         )
+        .transform((val) => val ? parseInt(val) : undefined),
+      z.array(
+        z.string()
+          .refine(
+            (value) => ["0", "1"].includes(value),
+            { message: "Cada status deve ser '0' (inativo) ou '1' (ativo)" }
+          )
+          .transform((val) => parseInt(val))
       )
     ])
     .optional(),
