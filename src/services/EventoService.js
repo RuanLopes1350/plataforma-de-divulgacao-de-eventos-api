@@ -5,6 +5,7 @@ import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import { EventoQuerySchema } from "../utils/validators/schemas/zod/querys/EventoQuerySchema.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
+import QRCode from 'qrcode';
 
 class EventoService {
     constructor() {
@@ -13,9 +14,13 @@ class EventoService {
     }
 
     // POST /eventos
-    async cadastrar(dadosEventos) {
-        const data = await this.repository.cadastrar(dadosEventos);
-        return data;
+    async cadastrar(dadosEvento) {
+        if (dadosEvento.tags) {
+            dadosEvento.tags = this.normalizeTags(dadosEvento.tags);
+        }
+
+        const data = await this.repository.cadastrar(dadosEvento);
+        return data
     }
     
     // GET /eventos && GET /eventos/:id
@@ -25,17 +30,6 @@ class EventoService {
             
             const eventoReq = { params: { id: req } };
             const evento = await this.repository.listar(eventoReq);
-            
-            // Para usuários não autenticados, só mostrar eventos ativos
-            if (!usuarioId && evento.status !== 'ativo') {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.NOT_FOUND.code,
-                    errorType: 'resourceNotFound',
-                    field: 'Evento',
-                    details: [],
-                    customMessage: 'Evento não encontrado ou inativo.'
-                });
-            }
             
             return evento;
         }
@@ -64,29 +58,21 @@ class EventoService {
         const evento = await this.ensureEventExists(id);
         
         await this.ensureUserIsOwner(evento, usuarioId, false);
-        
+        // Se houver tags novas no parsedData, normalize e una com as tags existentes
+        if (parsedData.tags) {
+            const incoming = this.normalizeTags(parsedData.tags);
+            const existing = Array.isArray(evento.tags) ? evento.tags : this.normalizeTags(evento.tags || '');
+            parsedData.tags = this.mergeTags(existing, incoming);
+        }
+
         const data = await this.repository.alterar(id, parsedData);
         return data;
-    }
-    
-    // PATCH /eventos/:id/status
-    async alterarStatus(id, novoStatus, usuarioId) {
-        const evento = await this.ensureEventExists(id);
-        
-        await this.ensureUserIsOwner(evento, usuarioId, true);
-        
-        // if (novoStatus === 'ativo') {
-        //     await this.validarMidiasObrigatorias(evento);
-        // }
-        
-        const statusAtualizado = await this.repository.alterarStatus(id, novoStatus);
-        return statusAtualizado;
     }
     
     // PATCH /eventos/:id/compartilhar
     async compartilharPermissao(eventoId, email, permissao, expiraEm, usuarioId) {
         const evento = await this.ensureEventExists(eventoId);
-        
+
         await this.ensureUserIsOwner(evento, usuarioId, true);
         
         const usuarioDestino = await this.usuarioRepository.buscarPorEmail(email);
@@ -111,7 +97,6 @@ class EventoService {
             });
         }
 
-        // Verificar se já tem permissão ativa
         const permissaoExistente = evento.permissoes?.find(p => 
             p.usuario.toString() === usuarioDestino._id.toString() &&
             new Date(p.expiraEm) > new Date()
@@ -161,6 +146,71 @@ class EventoService {
     // MÉTODOS AUXILIARES
     ////////////////////////////////////////////////////////////////////////////////
 
+    async gerarQRCodeEvento(id, usuarioId) {
+        objectIdSchema.parse(id);
+
+        const evento = await this.listar(id, usuarioId);
+
+        if (!evento) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.event.notFound
+            });
+        }
+
+        const link = evento.link;
+        if (!link) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'link',
+                details: [],
+                customMessage: 'Link externo não encontrado para este evento.'
+            });
+        }
+
+        const qr = await this.generateQRCodeImage(link);
+        return { eventoId: evento._id, link, qrcode: qr?.dataUrl ?? null, buffer: qr?.buffer ?? null };
+    }
+
+    normalizeTags(raw) {
+        if (!raw && raw !== 0) return [];
+
+        if (Array.isArray(raw)) {
+            return raw
+                .filter(Boolean)
+                .map(t => String(t).trim())
+                .filter(t => t.length > 0)
+                .reduce((acc, t) => (acc.includes(t) ? acc : acc.concat(t)), []);
+        }
+
+        if (typeof raw !== 'string') {
+            raw = String(raw);
+        }
+
+        raw = raw.trim();
+        if (raw.length === 0) return [];
+
+        const parts = raw.split(',').map(p => p.trim()).filter(p => p.length > 0);
+        if (parts.length === 0) return [];
+
+        return parts.reduce((acc, t) => (acc.includes(t) ? acc : acc.concat(t)), []);
+    }
+
+    mergeTags(existing = [], incoming = []) {
+        const result = Array.isArray(existing) ? existing.slice() : [];
+        for (const t of incoming) {
+            const tag = String(t).trim();
+            if (!tag) continue;
+            if (!result.includes(tag)) result.push(tag);
+        }
+        return result;
+    }
+
+
     /**
      * Garante que o evento existe.
      */
@@ -180,12 +230,8 @@ class EventoService {
         return evento;
     }
 
-    /**
-     * Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
-     * @param {Object} evento - O evento a ser verificado
-     * @param {String} usuarioId - ID do usuário a verificar
-     * @param {Boolean} ownerOnly - Se true, apenas o proprietário original é permitido
-     */
+ 
+    // Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
     async ensureUserIsOwner(evento, usuarioId, ownerOnly = false) {
         // Se for o dono, permite sempre as requisições
         if (evento.organizador._id.toString() === usuarioId) {
@@ -225,34 +271,7 @@ class EventoService {
         });
     }
 
-    /**
-     * Valida se o evento tem todas as mídias obrigatórias antes de ativar
-     */
-    // async validarMidiasObrigatorias(evento) {
-    //     const midiaErrors = [];
-        
-    //     if (!evento.midiaVideo || evento.midiaVideo.length === 0) {
-    //         midiaErrors.push('Vídeo é obrigatório');
-    //     }
-        
-    //     if (!evento.midiaCapa || evento.midiaCapa.length === 0) {
-    //         midiaErrors.push('Capa é obrigatória');
-    //     }
-        
-    //     if (!evento.midiaCarrossel || evento.midiaCarrossel.length === 0) {
-    //         midiaErrors.push('Carrossel é obrigatório');
-    //     }
-        
-    //     if (midiaErrors.length > 0) {
-    //         throw new CustomError({
-    //             statusCode: HttpStatusCodes.BAD_REQUEST.code,
-    //             errorType: 'validationError',
-    //             field: 'midias',
-    //             details: midiaErrors,
-    //             customMessage: `Não é possível ativar o evento. Não possui mídias obrigatórias: ${midiaErrors.join(', ')}`
-    //         });
-    //     }
-    // }
+
 
 }
 

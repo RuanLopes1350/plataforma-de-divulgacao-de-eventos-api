@@ -5,6 +5,7 @@ import EventoService from '../services/EventoService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
 import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
+import CompartilharPermissaoSchema from '../utils/validators/schemas/zod/CompartilharPermissaoSchema.js';
 import {
     CommonResponse,
     CustomError,
@@ -14,7 +15,6 @@ import {
     StatusService,
     asyncWrapper
 } from '../utils/helpers/index.js';
-import QRCode from 'qrcode';
 
 
 class EventoController {
@@ -61,6 +61,15 @@ class EventoController {
         return CommonResponse.success(res, data);
     }
 
+    async gerarQRCode(req, res) {
+        const { id } = req.params;
+        objectIdSchema.parse(id);
+
+        const qrResult = await this.service.gerarQRCodeEvento(id, req.user?._id);
+        return CommonResponse.success(res, qrResult, 200, 'QR Code gerado com sucesso.');
+    }
+
+
     // PATCH /eventos/:id
     async alterar(req, res) {
         const { id } = req.params;
@@ -82,7 +91,8 @@ class EventoController {
         
         objectIdSchema.parse(id);
         
-        const { email, permissao = 'editar', expiraEm } = req.body;
+        // Validação de entrada (formato) com Zod
+        const { email, permissao, expiraEm } = await CompartilharPermissaoSchema.parseAsync(req.body);
 
         const data = await this.service.compartilharPermissao(id, email, permissao, expiraEm, usuarioLogado._id);
         

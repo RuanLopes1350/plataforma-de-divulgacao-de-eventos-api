@@ -52,6 +52,28 @@ class EventoFilterBuilder {
         return this;
     }
 
+    comPermissao(usuarioId) {
+        if (!usuarioId) return this;
+
+        // Inclui eventos cujo organizador é o usuário OU que contenham uma permissão válida para o usuário
+        try {
+            const userObjectId = mongoose.Types.ObjectId.isValid(usuarioId) ? mongoose.Types.ObjectId(usuarioId) : usuarioId;
+            const agora = new Date();
+            this.filtros.$or = [
+                { 'organizador._id': userObjectId },
+                { permissoes: { $elemMatch: { usuario: userObjectId, expiraEm: { $gt: agora } } } }
+            ];
+        } catch (e) {
+            // em caso de id inválido, ignora a parte do ObjectId e tenta usar valor cru
+            this.filtros.$or = [
+                { 'organizador._id': usuarioId },
+                { permissoes: { $elemMatch: { usuario: usuarioId, expiraEm: { $gt: new Date() } } } }
+            ];
+        }
+
+        return this;
+    }
+
     comStatus(status) {
         if (status !== undefined && status !== null) {
             if (Array.isArray(status)) {
