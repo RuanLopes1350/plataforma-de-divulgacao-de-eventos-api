@@ -37,42 +37,32 @@ const fakeMappings = {
         titulo: () => faker.company.catchPhrase(),
         descricao: () => faker.lorem.sentence(),
         local: () => faker.location.city(),
-        dataEvento: () => faker.date.future(),
+        dataInicio: () => faker.date.future(),
+        dataFim: () => faker.date.future({ days: 7 }),
+        link: () => faker.internet.url(),
         organizador: () => ({
           _id: new mongoose.Types.ObjectId(),
           nome: faker.person.fullName()
         }),
-        linkInscricao: () => faker.internet.url(),
-        eventoCriadoEm: () => faker.date.past(),
         tags: () => [faker.lorem.word(), faker.lorem.word()],
-        categoria: () => faker.lorem.word(),
-        status: () => faker.helpers.arrayElement(['ativo', 'inativo']),
-        midiaVideo: () => [
+        categoria: () => faker.helpers.arrayElement([
+            'academico', 'palestra', 'workshop', 'seminario', 'congresso', 'minicurso',
+            'cultural', 'esportivo', 'social', 'cientifico', 'extensao', 'pesquisa',
+            'feira', 'mostra', 'competicao', 'formatura', 'vestibular', 'enem',
+            'institucional', 'outros'
+        ]),
+        cor: () => faker.number.int({ min: 0, max: 10 }),
+        animacao: () => faker.number.int({ min: 0, max: 5 }),
+        status: () => faker.helpers.arrayElement([0, 1]),
+        midia: () => [
             {
-                _id: new mongoose.Types.ObjectId(),
-                url:  faker.internet.url() + "/" + uuid() + ".mp4",
-                tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 720,
-                largura: 1280,
+                midiTipo: 'capa',
+                midiLink: faker.internet.url() + "/" + uuid() + ".jpg"
             },
-        ],
-        midiaCapa: () => [
             {
-                _id: new mongoose.Types.ObjectId(),
-                url:  faker.internet.url() + "/" + uuid() + ".jpg",
-                tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 720,
-                largura: 1280,
-            },
-        ],
-        midiaCarrossel: () => [
-            {
-                _id: new mongoose.Types.ObjectId(),
-                url:  faker.internet.url() + "/" + uuid() + ".jpg",
-                tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 720,
-                largura: 1280,
-            },
+                midiTipo: 'video',
+                midiLink: faker.internet.url() + "/" + uuid() + ".mp4"
+            }
         ],
         permissoes: () => [
           {
