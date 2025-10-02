@@ -39,28 +39,28 @@ class EventoRepository {
 
             return data;
         }
-        
-        const { 
-            titulo, 
-            descricao, 
-            local, 
+
+        const {
+            titulo,
+            descricao,
+            local,
             categoria,
-            tags, 
+            tags,
             tipo,
             dataInicio,
-            dataFim, 
+            dataFim,
             page = 1,
             limite = 10,
             organizadorId,
             ignorarFiltroStatusPadrao = false
         } = req.query;
-        
+
         // Normalizar tags: aceitar tanto string CSV quanto array
         let tagsToFilter = tags;
         if (typeof tags === 'string' && tags.includes(',')) {
             tagsToFilter = tags.split(',').map(t => t.trim()).filter(Boolean);
         }
-        
+
         // Tratamento para o status que pode ser string ou array de string
         const status = Array.isArray(req.query.status) ? req.query.status : req.query.status;
 
@@ -72,7 +72,7 @@ class EventoRepository {
             .comCategoria(categoria)
             .comStatus(status)
             .comTags(tagsToFilter);
-            
+
         const usuarioId = req.user?._id || organizadorId;
 
         // Aplicar filtros de permissão se usuário estiver autenticado
@@ -82,7 +82,7 @@ class EventoRepository {
             // Para usuários não autenticados só mostra eventos ativos (1)
             filterBuilder.comStatus(1);
         }
-            
+
         if (tipo) {
             // Tipo é um campo simples no modelo; aplicar como filtro direto
             filterBuilder.filtros.tipo = tipo;
@@ -110,7 +110,7 @@ class EventoRepository {
         };
 
         const resultado = await this.model.paginate(filtros, options);
-        
+
         return resultado;
     }
 
@@ -150,7 +150,7 @@ class EventoRepository {
     async alterarStatus(id, novoStatus) {
         const evento = await this.model.findByIdAndUpdate(id, { status: novoStatus }, { new: true });
 
-        if(!evento) {
+        if (!evento) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'resourceNotFound',
@@ -182,15 +182,56 @@ class EventoRepository {
     aplicarFiltroStatusAtivo(ignorarFiltroStatusPadrao, status, usuarioId) {
         // Se usuário autenticado, não aplica filtro automático
         if (usuarioId) return false;
-        
+
         // Se status foi passado como filtro, aplica o filtro
         if (status) return false;
-        
+
         // Se pediu para ignorar, não aplica
         if (ignorarFiltroStatusPadrao) return false;
-        
+
         // Para requisições não autenticadas e sem filtragem específica retorna tudo
         return true;
+    }
+
+    // Lista eventos que devem ser exibidos no totem agora
+    async listarParaTotem(dataAtual, diaAtual, periodoAtual) {
+        const inicioDodia = new Date(dataAtual);
+        inicioDodia.setHours(0, 0, 0, 0);
+
+        const fimDoDia = new Date(dataAtual);
+        fimDoDia.setHours(23, 59, 59, 999);
+
+        const filtros = {
+            // Apenas eventos ativos
+            status: 1,
+
+            // Dentro do período de exibição
+            exibInicio: { $lte: dataAtual },
+            exibFim: { $gte: dataAtual },
+
+            // Dia da semana permitido
+            exibDia: { $regex: diaAtual, $options: 'i' },
+
+            // Período do dia permitido
+            [`exib${periodoAtual.charAt(0).toUpperCase() + periodoAtual.slice(1)}`]: true,
+
+            // Deve ter pelo menos uma mídia
+            'midia.0': { $exists: true }
+        };
+
+        // Retorna apenas campos necessários para o totem
+        const projection = {
+            titulo: 1,
+            descricao: 1,
+            local: 1,
+            dataInicio: 1,
+            dataFim: 1,
+            midia: 1,
+            cor: 1,
+            animacao: 1
+        };
+
+        return await this.model.find(filtros, projection).sort({ dataInicio: 1 });
     }
 }
 

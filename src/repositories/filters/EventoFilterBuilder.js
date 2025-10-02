@@ -98,7 +98,7 @@ class EventoFilterBuilder {
         if (dataInicio || dataFim) {
             // Filtra eventos que se sobrepõem ao intervalo especificado
             const filtroData = {};
-            
+
             if (dataInicio && dataFim) {
                 // Eventos que começam antes do fim do período E terminam depois do início do período
                 filtroData.$and = [
@@ -112,11 +112,31 @@ class EventoFilterBuilder {
                 // Eventos que começam antes da data de fim especificada
                 filtroData.dataInicio = { $lte: new Date(dataFim) };
             }
-            
+
             // Merge os filtros de data com os filtros existentes
             Object.assign(this.filtros, filtroData);
         }
-        
+
+        return this;
+    }
+
+    comExibicaoTotem(dataAtual, diaAtual, periodoAtual) {
+        // Dentro do período de exibição
+        this.filtros.exibInicio = { $lte: dataAtual };
+        this.filtros.exibFim = { $gte: dataAtual };
+
+        // Dia da semana permitido
+        this.filtros.exibDia = { $regex: diaAtual, $options: 'i' };
+
+        // Período do dia permitido
+        const campoPeriodo = `exib${periodoAtual.charAt(0).toUpperCase() + periodoAtual.slice(1)}`;
+        this.filtros[campoPeriodo] = true;
+
+        return this;
+    }
+
+    comMidiaObrigatoria() {
+        this.filtros['midia.0'] = { $exists: true };
         return this;
     }
 

@@ -56,22 +56,22 @@ class Evento {
                     required: true 
                 },
                 exibDia: {
-                    type: string,
+                    type: String,
                     required: true,
                     index: true
                 },
                 exibManha: {
-                    type: boolean,
+                    type: Boolean,
                     required: true,
                     index: true
                 },
                 exibTarde: {
-                    type: boolean,
+                    type: Boolean,
                     required: true,
                     index: true
                 },
                 exibNoite: {
-                    type: boolean,
+                    type: Boolean,
                     required: true,
                     index: true
                 },
