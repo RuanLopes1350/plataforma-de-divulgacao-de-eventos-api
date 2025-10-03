@@ -25,48 +25,9 @@ class UploadController {
         this.service = new UploadService();
     }
 
-    async adicionarMidia(req, res) {
-        const { id: eventoId} = ObjectIdSchema.parse(req.params);
-        const usuarioLogado = req.user;
-        
-        if (!req.file) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: "validationError",
-                field: "foto",
-                customMessage:
-                    "Nenhum arquivo enviado. Por favor, inclua um arquivo.",
-            });
-        }
-
-        // Validar o arquivo com Zod
-        const validatedFile = midiaUploadValidationSchema.parse(req.file);
-
-        // Determinar o tipo da mídia baseado no mimetype
-        const tipoMidia = this._determinarTipoMidia(validatedFile.mimetype);
-
-        // Preparar dados para o service
-        const dadosUpload = {
-            eventoId,
-            tipo: tipoMidia,
-            file: validatedFile,
-            usuarioId: usuarioLogado._id
-        };
-
-        // Passar os dados organizados para o service
-        const data = await this.service.adicionarMidia(eventoId, tipoMidia, validatedFile, usuarioLogado._id);
-
-        return CommonResponse.success(
-            res,
-            data,
-            HttpStatusCodes.OK.code,
-            `${tipoMidia === 'video' ? 'Vídeo' : 'Imagem'} adicionada com sucesso.`
-        );
-    }
-
     // POST /eventos/:id/midias (múltiplas mídias)
     async adicionarMultiplasMidias(req, res) {
-        const { id: eventoId } = ObjectIdSchema.parse(req.params);
+        const eventoId = ObjectIdSchema.parse(req.params.id);
         const usuarioLogado = req.user;
         
         if (!req.files || req.files.length === 0) {
@@ -115,8 +76,8 @@ class UploadController {
     async deletarMidia(req, res) {
         const { eventoId, midiaId } = req.params;
         
-        const validatedEventoId = ObjectIdSchema.parse({ id: eventoId }).id;
-        const validatedMidiaId = ObjectIdSchema.parse({ id: midiaId }).id;
+        const validatedEventoId = ObjectIdSchema.parse(eventoId);
+        const validatedMidiaId = ObjectIdSchema.parse(midiaId);
         
         const usuarioLogado = req.user;
 
