@@ -292,11 +292,11 @@ class EventoService {
         const horaAtual = agora.getHours();
         let periodoAtual = '';
         if (horaAtual >= 6 && horaAtual < 12) {
-            periodoAtual = 'matutino';
+            periodoAtual = 'manha';
         } else if (horaAtual >= 12 && horaAtual < 18) {
-            periodoAtual = 'vespertino';
+            periodoAtual = 'tarde';
         } else {
-            periodoAtual = 'noturno';
+            periodoAtual = 'noite';
         }
 
         return await this.repository.listarParaTotem(agora, diaAtual, periodoAtual);

@@ -52,7 +52,7 @@ async function seedEventos(usuarios) {
             exibTarde: true,
             exibNoite: false,
             exibInicio: new Date("2025-05-20T00:00:00Z"),
-            exibFim: new Date("2025-05-26T23:59:59Z"),
+            exibFim: new Date("2025-12-26T23:59:59Z"),
             organizador: {
                 _id: usuarios[0]._id,
                 nome: usuarios[0].nome
