@@ -8,7 +8,9 @@
   "type": "module",
   "scripts": {
     "dev": "docker compose -f docker-compose.dev.yml up --build",
+    "dev:local": "nodemon --watch src --ignore node_modules --ignore logs src/app.js",
     "seed": "docker exec -it eventos-api node src/seeds/seeds.js",
+    "seed:local": "node src/seeds/seeds.js",
     "test": "jest --coverage --detectOpenHandles",
     "start": "node server.js",
     "docker": "docker compose -f docker-compose.yml up --build -d"

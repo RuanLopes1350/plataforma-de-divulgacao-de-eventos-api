@@ -39,6 +39,17 @@ const fakeMappings = {
         local: () => faker.location.city(),
         dataInicio: () => faker.date.future(),
         dataFim: () => faker.date.future({ days: 7 }),
+        exibDia: () => {
+            const diasValidos = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+            const numDias = faker.number.int({ min: 1, max: 3 });
+            const diasEscolhidos = faker.helpers.arrayElements(diasValidos, numDias);
+            return diasEscolhidos.join(',');
+        },
+        exibManha: () => faker.datatype.boolean(),
+        exibTarde: () => faker.datatype.boolean(),
+        exibNoite: () => faker.datatype.boolean(),
+        exibInicio: () => faker.date.soon({ days: 5 }),
+        exibFim: () => faker.date.future({ days: 30 }),
         link: () => faker.internet.url(),
         organizador: () => ({
           _id: new mongoose.Types.ObjectId(),
