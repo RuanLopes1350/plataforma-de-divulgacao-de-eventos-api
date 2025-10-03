@@ -271,7 +271,21 @@ class EventoService {
         });
     }
 
-
+    async generateQRCodeImage(link) {
+        try {
+            const dataUrl = await QRCode.toDataURL(link);
+            const buffer = await QRCode.toBuffer(link);
+            return { dataUrl, buffer };
+        } catch (error) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                errorType: 'internalServerError',
+                field: 'QRCode',
+                details: [],
+                customMessage: 'Erro ao gerar código QR.'
+            });
+        }
+    }
 
 }
 
