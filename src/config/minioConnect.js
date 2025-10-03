@@ -6,6 +6,7 @@ const requiredMinioVars = [
     'MINIO_PORT',
     'MINIO_ACCESS_KEY',
     'MINIO_SECRET_KEY',
+    'MINIO_BUCKET_FOTOS',
 ];
 
 for (const varName of requiredMinioVars) {
