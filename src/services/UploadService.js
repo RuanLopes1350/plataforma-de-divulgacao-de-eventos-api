@@ -49,6 +49,7 @@ class UploadService {
 
                 // Determinar tipo baseado no mimetype
                 const tipo = this._determinarTipoMidia(file.mimetype);
+                console.log(midiaInfo.url);
 
                 // Criar objeto de mídia
                 const novaMidia = {
@@ -176,6 +177,14 @@ class UploadService {
 
     async enviarMinio(id, file) {
         const bucket = process.env.MINIO_BUCKET_FOTOS;
+        
+        if (!bucket) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                customMessage: "Configuração do bucket MinIO não encontrada. Verifique a variável MINIO_BUCKET_FOTOS.",
+            });
+        }
+        
         const targetName = `${id}-${file.originalname}`;
 
         const metaData = {
@@ -198,7 +207,8 @@ class UploadService {
         }
 
         // Gerar URL pública do arquivo
-        const publicUrl = `${process.env.MINIO_ENDPOINT}/${bucket}/${targetName}`;
+        const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+        const publicUrl = `${protocol}://${process.env.MINIO_ENDPOINT}/${bucket}/${targetName}`;
 
         return {
             bucket,
@@ -212,6 +222,13 @@ class UploadService {
 
     async deletarMinio(fileName) {
         const bucket = process.env.MINIO_BUCKET_FOTOS;
+        
+        if (!bucket) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                customMessage: "Configuração do bucket MinIO não encontrada. Verifique a variável MINIO_BUCKET_FOTOS.",
+            });
+        }
 
         //necessario o uso do try/catch para tratar erros de remoção
         try {
