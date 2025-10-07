@@ -55,6 +55,12 @@ class EventoRepository {
             ignorarFiltroStatusPadrao = false
         } = req.query;
         
+        // Normalizar tags: aceitar tanto string CSV quanto array
+        let tagsToFilter = tags;
+        if (typeof tags === 'string' && tags.includes(',')) {
+            tagsToFilter = tags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+        
         // Tratamento para o status que pode ser string ou array de string
         const status = Array.isArray(req.query.status) ? req.query.status : req.query.status;
 
@@ -62,24 +68,24 @@ class EventoRepository {
 
         const filterBuilder = new EventoFilterBuilder()
             .comTitulo(titulo)
-            .comDescricao(descricao)
             .comLocal(local)
             .comCategoria(categoria)
             .comStatus(status)
-            .comTags(tags);
+            .comTags(tagsToFilter);
             
         const usuarioId = req.user?._id || organizadorId;
-        
+
         // Aplicar filtros de permissão se usuário estiver autenticado
         if (usuarioId) {
             filterBuilder.comPermissao(usuarioId);
         } else if (this.aplicarFiltroStatusAtivo(ignorarFiltroStatusPadrao, status, usuarioId)) {
-            // Para usuários não autenticados só mostra eventos ativos
-            filterBuilder.comStatus('ativo');
+            // Para usuários não autenticados só mostra eventos ativos (1)
+            filterBuilder.comStatus(1);
         }
             
         if (tipo) {
-            filterBuilder.comTipo(tipo);
+            // Tipo é um campo simples no modelo; aplicar como filtro direto
+            filterBuilder.filtros.tipo = tipo;
         } else {
             filterBuilder.comIntervaloData(dataInicio, dataFim);
         }

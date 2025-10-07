@@ -23,13 +23,6 @@ class EventoFilterBuilder {
         return this;
     }
 
-    comDescricao(descricao) {
-        if (descricao) {
-            this.filtros.descricao = { $regex: this.escapeRegex(descricao), $options: 'i' };
-        }
-        return this;
-    }
-
     comLocal(local) {
         if (local) {
             this.filtros.local = { $regex: this.escapeRegex(local), $options: 'i' };
@@ -46,130 +39,84 @@ class EventoFilterBuilder {
 
     comTags(tags) {
         if (tags) {
-            const tagsArray = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
-            if (tagsArray.length > 0) {
-                this.filtros.tags = { $in: tagsArray };
+            if (Array.isArray(tags)) {
+                // Se vier como array (do QuerySchema), busca cada tag individualmente
+                if (tags.length > 0) {
+                    this.filtros.tags = { $in: tags };
+                }
+            } else {
+                // Se vier como string, busca usando regex (busca parcial dentro das tags)
+                this.filtros.tags = { $regex: this.escapeRegex(tags), $options: 'i' };
             }
         }
+        return this;
+    }
+
+    comPermissao(usuarioId) {
+        if (!usuarioId) return this;
+
+        // Inclui eventos cujo organizador é o usuário OU que contenham uma permissão válida para o usuário
+        try {
+            const userObjectId = mongoose.Types.ObjectId.isValid(usuarioId) ? mongoose.Types.ObjectId(usuarioId) : usuarioId;
+            const agora = new Date();
+            this.filtros.$or = [
+                { 'organizador._id': userObjectId },
+                { permissoes: { $elemMatch: { usuario: userObjectId, expiraEm: { $gt: agora } } } }
+            ];
+        } catch (e) {
+            // em caso de id inválido, ignora a parte do ObjectId e tenta usar valor cru
+            this.filtros.$or = [
+                { 'organizador._id': usuarioId },
+                { permissoes: { $elemMatch: { usuario: usuarioId, expiraEm: { $gt: new Date() } } } }
+            ];
+        }
+
         return this;
     }
 
     comStatus(status) {
-        if (status) {
+        if (status !== undefined && status !== null) {
             if (Array.isArray(status)) {
-                // Se for um array, filtra apenas os valores e cria uma consulta válida
-                const statusValidos = status.filter(s => ['ativo', 'inativo'].includes(s));
+                // Se for um array, filtra apenas os valores válidos (0 ou 1)
+                const statusValidos = status.filter(s => s === 0 || s === 1 || s === '0' || s === '1')
+                    .map(s => parseInt(s)); // Converte para número
                 if (statusValidos.length > 0) {
                     this.filtros.status = { $in: statusValidos };
                 }
-            } else if (['ativo', 'inativo'].includes(status)) {
-                // Se for uma string única, mantém o comportamento original
-                this.filtros.status = status;
-            }
-        }
-        return this;
-    }
-
-    comTipo(tipo) {
-        if (tipo) {
-            const dataAtual = new Date();
-            
-            switch (tipo) {
-                case 'historico':
-                    this.filtros.dataEvento = { $lt: dataAtual };
-                    if (!this.filtros.status) {
-                        this.filtros.status = 'ativo';
-                    }
-                    break;
-                    
-                case 'ativo':
-                    const inicioDia = startOfDay(dataAtual);
-                    const fimDia = endOfDay(dataAtual);
-                    this.filtros.dataEvento = { 
-                        $gte: inicioDia,
-                        $lte: fimDia
-                    };
-                    if (!this.filtros.status) {
-                        this.filtros.status = 'ativo';
-                    }
-                    break;
-                    
-                case 'futuro':
-                    this.filtros.dataEvento = { $gt: dataAtual };
-                    if (!this.filtros.status) {
-                        this.filtros.status = 'ativo';
-                    }
-                    break;
+            } else {
+                // Se for um valor único, valida se é 0 ou 1
+                const statusNum = parseInt(status);
+                if (statusNum === 0 || statusNum === 1) {
+                    this.filtros.status = statusNum;
+                }
             }
         }
         return this;
     }
 
     comIntervaloData(dataInicio, dataFim) {
-        if (!this.filtros.dataEvento) {
-            this.filtros.dataEvento = {};
-        }
-        
-        if (dataInicio) {
-            this.filtros.dataEvento.$gte = new Date(dataInicio);
-        }
-        
-        if (dataFim) {
-            this.filtros.dataEvento.$lte = new Date(dataFim);
-        }
-        
-        if (!dataInicio && !dataFim && Object.keys(this.filtros.dataEvento).length === 0) {
-            delete this.filtros.dataEvento;
-        }
-        
-        return this;
-    }
-
-    async comOrganizadorNome(nomeOrganizador) {
-        if (nomeOrganizador) {
-            const usuarios = await this.usuarioModel.find({
-                nome: { $regex: new RegExp(nomeOrganizador, 'i') }
-            });
-
-            const usuarioIds = usuarios.map(usuario => usuario._id);
+        if (dataInicio || dataFim) {
+            // Filtra eventos que se sobrepõem ao intervalo especificado
+            const filtroData = {};
             
-            if (usuarioIds.length > 0) {
-                this.filtros['organizador._id'] = { $in: usuarioIds };
-            }
-        }
-        return this;
-    }
-
-    comOrganizador(organizadorId) {
-        if (organizadorId && mongoose.Types.ObjectId.isValid(organizadorId)) {
-            this.filtros['organizador._id'] = new mongoose.Types.ObjectId(organizadorId);
-        }
-        return this;
-    }
-
-    comPermissao(usuarioId) {
-        if (usuarioId && mongoose.Types.ObjectId.isValid(usuarioId)) {
-            const dataAtual = new Date();
-            
-            if (!this.filtros.$or) {
-                this.filtros.$or = [];
+            if (dataInicio && dataFim) {
+                // Eventos que começam antes do fim do período E terminam depois do início do período
+                filtroData.$and = [
+                    { dataInicio: { $lte: new Date(dataFim) } },
+                    { dataFim: { $gte: new Date(dataInicio) } }
+                ];
+            } else if (dataInicio) {
+                // Eventos que terminam depois da data de início especificada
+                filtroData.dataFim = { $gte: new Date(dataInicio) };
+            } else if (dataFim) {
+                // Eventos que começam antes da data de fim especificada
+                filtroData.dataInicio = { $lte: new Date(dataFim) };
             }
             
-            this.filtros.$or.push(
-                // Eventos próprios (organizador)
-                { 'organizador._id': new mongoose.Types.ObjectId(usuarioId) },
-                // Eventos com permissão compartilhada
-                {
-                    permissoes: {
-                        $elemMatch: {
-                            usuario: new mongoose.Types.ObjectId(usuarioId),
-                            permissao: 'editar',
-                            expiraEm: { $gt: dataAtual }
-                        }
-                    }
-                }
-            );
+            // Merge os filtros de data com os filtros existentes
+            Object.assign(this.filtros, filtroData);
         }
+        
         return this;
     }
 

@@ -16,12 +16,10 @@ const eventosPath = {
       - Mídias devem ser adicionadas separadamente após criação
       - Tags devem ser array de strings (mínimo 1 tag)
       - dataEvento deve ser no formato ISO 8601
-      - Para ativar o evento, use a rota PATCH /eventos/{id}/status
       
       **Fluxo Recomendado:**
       1. Criar evento (esta rota)
       2. Adicionar mídias com POST /eventos/{id}/midia/{tipo}
-      3. Ativar evento com PATCH /eventos/{id}/status
       
       **IMPORTANTE - Tags:**
       - Tags é campo OBRIGATÓRIO - mínimo 1 tag necessária
@@ -150,24 +148,29 @@ const eventosPath = {
     "get": {
       "tags": ["Eventos"],
       "summary": "Listar eventos",
-      "description": `**ROTA PÚBLICA** - Lista todos os eventos com paginação e filtros opcionais. Rota pública para acesso do totem, mas também aceita autenticação para recursos administrativos.
+      "description": `**ROTA PÚBLICA** - Lista eventos com paginação e filtros opcionais.
       
-      **Regras de Negócio:**
-      - Rota pública (não requer autenticação para totem)
-      - Com autenticação: retorna eventos do usuário e compartilhados
-      - Sem autenticação: retorna apenas eventos públicos/ativos
-      - Parâmetro 'apenasVisiveis=true' otimiza para visualização do totem
-      - Filtro 'tipo=historico' para eventos passados
-      - Filtro 'tipo=ativo' para eventos do dia atual
-      - Filtro 'tipo=futuro' para eventos futuros
-      - Paginação padrão: 10 itens por página, máximo 100
-      - Suporte a busca por título, categoria, tags, organizador
-      - Filtros de data flexíveis (dataInicio, dataTermino)`,
+      **Regras:**
+      - Sem autenticação: apenas eventos ativos
+      - Com autenticação: eventos próprios + compartilhados
+      - Paginação: 10 itens/página (máx. 100)
+      
+      **Filtros Disponíveis:**
+      - titulo, local, categoria, tags, status, dataInicio/dataFim`,
       "parameters": [
         {
           "name": "titulo",
           "in": "query",
-          "description": "Filtrar por título (busca parcial)",
+          "description": "Busca parcial no título",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "local",
+          "in": "query",
+          "description": "Busca parcial no local",
           "required": false,
           "schema": {
             "type": "string"
@@ -176,7 +179,7 @@ const eventosPath = {
         {
           "name": "categoria",
           "in": "query",
-          "description": "Filtrar por categoria",
+          "description": "Busca parcial na categoria",
           "required": false,
           "schema": {
             "type": "string"
@@ -185,36 +188,37 @@ const eventosPath = {
         {
           "name": "status",
           "in": "query",
-          "description": "Filtrar por status",
+          "description": "Status do evento: 0=inativo, 1=ativo",
           "required": false,
           "schema": {
-            "type": "string",
-            "enum": ["ativo", "inativo"]
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["0", "1"]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["0", "1"]
+                }
+              }
+            ]
           }
-        },
-        {
-          "name": "tipo",
-          "in": "query",
-          "description": "Filtrar por tipo temporal do evento. Use 'historico' para slideshow do totem com eventos passados.",
-          "required": false,
-          "schema": {
-            "type": "string",
-            "enum": ["historico", "ativo", "futuro"]
-          },
         },
         {
           "name": "tags",
           "in": "query",
-          "description": "Filtrar por tags (separadas por vírgula)",
+          "description": "Busca em tags",
           "required": false,
           "schema": {
             "type": "string"
-          },
+          }
         },
         {
           "name": "dataInicio",
           "in": "query",
-          "description": "Filtrar por data de início (formato ISO)",
+          "description": "Data de início para filtro de intervalo",
           "required": false,
           "schema": {
             "type": "string",
@@ -224,22 +228,12 @@ const eventosPath = {
         {
           "name": "dataFim",
           "in": "query",
-          "description": "Filtrar por data de fim (formato ISO)",
+          "description": "Data de fim para filtro de intervalo",
           "required": false,
           "schema": {
             "type": "string",
             "format": "date-time"
           }
-        },
-        {
-          "name": "apenasVisiveis",
-          "in": "query",
-          "description": "Mostrar apenas eventos visíveis (específico para totem). Use 'true' para slideshow e visualização pública ou faça logout.",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          },
-          "example": false
         },
         {
           "name": "page",
@@ -250,8 +244,7 @@ const eventosPath = {
             "type": "integer",
             "minimum": 1,
             "default": 1
-          },
-          "example": 1
+          }
         },
         {
           "name": "limite",
@@ -263,8 +256,7 @@ const eventosPath = {
             "minimum": 1,
             "maximum": 100,
             "default": 10
-          },
-          "example": 10
+          }
         }
       ],
       "responses": {
@@ -484,7 +476,6 @@ const eventosPath = {
       - Usuários com permissão compartilhada também podem editar
       - Atualização parcial (apenas campos fornecidos são alterados)
       - Não é possível alterar o organizador
-      - Status não pode ser alterado por esta rota (use /status)
       - ID deve ser válido e evento deve existir`,
       "security": [
         {
@@ -842,218 +833,8 @@ const eventosPath = {
       }
     }
   },
-  "/eventos/{id}/status": {
-    "patch": {
-      "tags": ["Eventos"],
-      "summary": "Alterar status do evento",
-      "description": `**ROTA PROTEGIDA** - Altera o status de um evento entre ativo e inativo. Controla a visibilidade do evento na plataforma.
-      
-      **Regras de Negócio:**
-      - Usuário deve estar autenticado
-      - Apenas o organizador do evento pode alterar o status
-      - Status deve ser 'ativo' ou 'inativo'
-      - Eventos inativos não aparecem nas listagens públicas
-      - Parâmetro 'validarMidias=true' força validação de mídias obrigatórias
-      - Com validação: evento deve ter pelo menos uma capa para ser ativado
-      - Sem validação: permite ativação mesmo sem mídias obrigatórias
-      - Mensagem de resposta varia conforme validação foi usada`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "ID do evento",
-          "schema": {
-            "type": "string",
-            "pattern": "^[0-9a-fA-F]{24}$"
-          }
-        }
-      ],
-      "requestBody": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "enum": ["ativo", "inativo"],
-                  "description": "Novo status do evento"
-                },
-                "validarMidias": {
-                  "type": "boolean",
-                  "description": "Se true, valida se as mídias obrigatórias estão presentes antes de ativar o evento",
-                  "default": false
-                }
-              },
-              "required": ["status"]
-            }
-          }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Status do evento alterado com sucesso",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EventoDetalheResponse"
-              },
-              "examples": {
-                "status_alterado": {
-                  "value": {
-                    "statusCode": 200,
-                    "message": "Status do evento alterado com sucesso!",
-                    "data": {
-                      "_id": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "titulo": "Workshop de Node.js",
-                      "status": "ativo",
-                      "organizador": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
-                        "nome": "João Silva"
-                      },
-                      "updatedAt": "2024-01-01T14:00:00.000Z"
-                    }
-                  }
-                },
-                "evento_ativado": {
-                  "value": {
-                    "statusCode": 200,
-                    "message": "Evento cadastrado e ativado com sucesso!",
-                    "data": {
-                      "_id": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "titulo": "Workshop de Node.js",
-                      "status": "ativo",
-                      "organizador": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
-                        "nome": "João Silva"
-                      },
-                      "updatedAt": "2024-01-01T14:00:00.000Z"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "Status inválido",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "status_invalido": {
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "Status deve ser ativo ou inativo.",
-                    "details": []
-                  }
-                },
-                "midias_obrigatorias": {
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "Não é possível ativar o evento. Não possui mídias obrigatórias: Vídeo é obrigatório, Capa é obrigatória, Carrossel é obrigatório",
-                    "details": ["Vídeo é obrigatório", "Capa é obrigatória", "Carrossel é obrigatório"]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "401": {
-          "description": "Usuário não autorizado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_autorizado": {
-                  "value": {
-                    "statusCode": 401,
-                    "error": "Não autorizado",
-                    "message": "Usuário não possui permissão para acessar este recurso",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "403": {
-          "description": "Acesso negado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "acesso_negado": {
-                  "value": {
-                    "statusCode": 403,
-                    "error": "Acesso negado",
-                    "message": "Você não tem permissão para realizar esta ação",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "Evento não encontrado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_encontrado": {
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Recurso não encontrado em Evento.",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "Erro interno do servidor",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "erro_interno": {
-                  "value": {
-                    "statusCode": 500,
-                    "error": "Erro interno",
-                    "message": "Ocorreu um erro inesperado no servidor",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "/eventos/{id}/compartilhar": {
-    "patch": {
+    "post": {
       "tags": ["Eventos"],
       "summary": "Compartilhar permissão de evento",
       "description": `**ROTA PROTEGIDA** - Compartilha permissão de edição de um evento com outro usuário via email. Permite colaboração na gestão do evento.

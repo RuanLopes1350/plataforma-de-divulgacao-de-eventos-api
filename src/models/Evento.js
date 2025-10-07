@@ -2,7 +2,16 @@
 import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
-import Usuario from './Usuario.js';
+const midiaSchema = new mongoose.Schema({
+    midiTipo: { 
+        type: String, 
+        required: true 
+    },
+    midiLink: { 
+        type: String, 
+        required: true 
+    }
+});
 
 const permissaoSchema = new mongoose.Schema({
     usuario: {
@@ -25,10 +34,30 @@ class Evento {
     constructor() {
         const eventoSchema = new mongoose.Schema(
             {
-                titulo: { type: String, index: true, required: true },
-                descricao: { type: String, required: true },
-                local: { type: String, required: true },
-                dataEvento: { type: Date, required: true },
+                titulo: { 
+                    type: String, 
+                    index: true, 
+                    required: true 
+                },
+                descricao: { 
+                    type: String, 
+                    required: true 
+                },
+                local: { 
+                    type: String, 
+                    required: true 
+                },
+                dataInicio: { 
+                    type: Date, 
+                    required: true 
+                },
+                dataFim: { 
+                    type: Date, 
+                    required: true 
+                },
+                link: { 
+                    type: String,
+                },
                 organizador: {
                     _id: {
                         type: mongoose.Schema.Types.ObjectId,
@@ -40,48 +69,36 @@ class Evento {
                         required: true,
                     },
                 },
-                linkInscricao: { type: String, required: true},
-                eventoCriadoEm: { type: Date, default: Date.now, required: true },
-                tags: { type: [ String ], required: true, validate: { validator: (arr) => arr.length > 0, message: 'tags não pode ser vazio' }},
-                categoria: { type: String, required: true },
-                status: { type: String, enum: ['ativo', 'inativo'], default: 'inativo' },
-                midiaVideo: {
-                    type: [{
-                        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-                        url: { type: String, required: true },
-                        tamanhoMb: {type: Number, required: true },
-                        altura: { type: Number, required: true },
-                        largura: { type: Number, required: true },
-                    }],
-                    default: [],
-                    validate: { validator: function(arr) { return this.status === 'inativo' || arr.length > 0 }, message: 'midiaVideo é obrigatório para eventos ativos' },
+                tags: { 
+                    type: [String],
+                    required: true,
+                    default: []
                 },
-                midiaCapa: {
-                    type: [{
-                        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-                        url: { type: String, required: true },
-                        tamanhoMb: { type: Number, required: true },
-                        altura: { type: Number, required: true },
-                        largura: { type: Number, required: true },
-                    }],
-                    default: [],
-                    validate: { validator: function(arr) { return this.status === 'inativo' || arr.length > 0 }, message: 'midiaCapa é obrigatório para eventos ativos' },
+                categoria: { 
+                    type: String, 
+                    required: true 
                 },
-                midiaCarrossel: {
-                    type: [{
-                        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-                        url: { type: String, required: true },
-                        tamanhoMb: { type: Number, required: true },
-                        altura: { type: Number, required: true },
-                        largura: { type: Number, required: true },
-                    }],
-                    default: [],
-                    validate: { validator: function(arr) { return this.status === 'inativo' || arr.length > 0 }, message: 'midiaCarrossel é obrigatório para eventos ativos' },
+                cor: { 
+                    type: Number, 
+                    default: 0 
+                },
+                animacao: { 
+                    type: Number, 
+                    default: 0  
+                },
+                status: { 
+                    type: Number, 
+                    required: true,
+                    default: 0 
+                },
+                midia: {
+                    type: [midiaSchema],
+                    default: []
                 },
                 permissoes: [permissaoSchema],
             },
             {
-                timestamps: { createdAt: 'eventoCriadoEm' },
+                timestamps: true,
                 versionKey: false,
             }
         );

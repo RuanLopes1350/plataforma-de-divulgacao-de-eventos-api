@@ -29,6 +29,26 @@ class UploadRepository {
         return evento;
     }
 
+    // Método para atualizar evento
+    async atualizar(eventoId, dadosAtualizacao) {
+        const eventoAtualizado = await this.model.findByIdAndUpdate(
+            eventoId,
+            dadosAtualizacao,
+            { new: true }
+        );
+
+        if (!eventoAtualizado) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'notFound',
+                field: 'Evento',
+                customMessage: messages.error.resourceNotFound('Evento')
+            });
+        }
+
+        return eventoAtualizado;
+    }
+
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(eventoId, tipo, midia) {
         const tipos = {

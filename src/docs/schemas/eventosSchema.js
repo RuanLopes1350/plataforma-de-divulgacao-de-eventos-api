@@ -20,21 +20,33 @@ const eventosSchemas = {
         description: "Local do evento",
         example: "Centro de Convenções"
       },
-      dataEvento: {
+      dataInicio: {
         type: "string",
         format: "date-time",
-        description: "Data e hora do evento",
+        description: "Data e hora de início do evento",
         example: "2025-08-15T10:00:00.000Z"
       },
-      linkInscricao: {
+      dataFim: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de fim do evento",
+        example: "2025-08-15T18:00:00.000Z"
+      },
+      link: {
         type: "string",
         description: "Link para inscrição no evento",
         example: "https://exemplo.com/inscricao"
       },
       categoria: {
         type: "string",
+        enum: [
+          "academico", "palestra", "workshop", "seminario", "congresso", "minicurso",
+          "cultural", "esportivo", "social", "cientifico", "extensao", "pesquisa",
+          "feira", "mostra", "competicao", "formatura", "vestibular", "enem",
+          "institucional", "outros"
+        ],
         description: "Categoria do evento",
-        example: "tecnologia"
+        example: "palestra"
       },
       tags: {
         type: "array",
@@ -45,14 +57,46 @@ const eventosSchemas = {
         example: ["tecnologia", "inovação", "palestras"],
         minItems: 1
       },
+      cor: {
+        type: "integer",
+        minimum: 0,
+        description: "Código numérico da cor do evento",
+        example: 3
+      },
+      animacao: {
+        type: "integer",
+        minimum: 0,
+        description: "Código numérico da animação do evento",
+        example: 1
+      },
       status: {
-        type: "string",
-        enum: ["ativo", "inativo"],
-        description: "Status do evento",
-        example: "inativo"
+        type: "integer",
+        enum: [0, 1],
+        description: "Status do evento (0 = inativo, 1 = ativo)",
+        example: 1
+      },
+      midia: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            midiTipo: {
+              type: "string",
+              description: "Tipo da mídia",
+              example: "capa"
+            },
+            midiLink: {
+              type: "string",
+              description: "Link da mídia",
+              example: "/uploads/eventos/507f1f77bcf86cd799439011/capa.jpg"
+            }
+          }
+        },
+        description: "Mídias do evento",
+        example: []
       }
     },
-    required: ["titulo", "descricao", "local", "dataEvento", "linkInscricao", "categoria", "tags"]
+    required: ["titulo", "descricao", "local", "dataInicio", "dataFim", "categoria", "tags"]
   },
   EventoDetalhes: {
     type: "object",
@@ -77,11 +121,17 @@ const eventosSchemas = {
         description: "Local do evento",
         example: "Centro de Convenções"
       },
-      dataEvento: {
+      dataInicio: {
         type: "string",
         format: "date-time",
-        description: "Data e hora do evento",
+        description: "Data e hora de início do evento",
         example: "2025-08-15T10:00:00.000Z"
+      },
+      dataFim: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de fim do evento",
+        example: "2025-08-15T18:00:00.000Z"
       },
       organizador: {
         type: "object",
@@ -98,21 +148,21 @@ const eventosSchemas = {
           }
         }
       },
-      linkInscricao: {
+      link: {
         type: "string",
         description: "Link para inscrição no evento",
         example: "https://exemplo.com/inscricao"
       },
-      eventoCriadoEm: {
-        type: "string",
-        format: "date-time",
-        description: "Data de criação do evento",
-        example: "2025-07-08T21:35:10.742Z"
-      },
       categoria: {
         type: "string",
+        enum: [
+          "academico", "palestra", "workshop", "seminario", "congresso", "minicurso",
+          "cultural", "esportivo", "social", "cientifico", "extensao", "pesquisa",
+          "feira", "mostra", "competicao", "formatura", "vestibular", "enem",
+          "institucional", "outros"
+        ],
         description: "Categoria do evento",
-        example: "tecnologia"
+        example: "palestra"
       },
       tags: {
         type: "array",
@@ -122,115 +172,42 @@ const eventosSchemas = {
         description: "Tags do evento",
         example: ["tecnologia", "inovação", "palestras"]
       },
+      cor: {
+        type: "integer",
+        minimum: 0,
+        description: "Código numérico da cor do evento",
+        example: 3
+      },
+      animacao: {
+        type: "integer",
+        minimum: 0,
+        description: "Código numérico da animação do evento",
+        example: 1
+      },
       status: {
-        type: "string",
-        enum: ["ativo", "inativo"],
-        description: "Status do evento",
-        example: "inativo"
+        type: "integer",
+        enum: [0, 1],
+        description: "Status do evento (0 = inativo, 1 = ativo)",
+        example: 1
       },
-      midiaVideo: {
+      midia: {
         type: "array",
         items: {
           type: "object",
           properties: {
-            _id: {
+            midiTipo: {
               type: "string",
-              description: "ID da mídia",
-              example: "507f1f77bcf86cd799439011"
+              description: "Tipo da mídia",
+              example: "capa"
             },
-            url: {
+            midiLink: {
               type: "string",
-              description: "URL do vídeo",
-              example: "/uploads/eventos/507f1f77bcf86cd799439011/video/video.mp4"
-            },
-            tamanhoMb: {
-              type: "number",
-              description: "Tamanho do arquivo em MB",
-              example: 12.5
-            },
-            altura: {
-              type: "number",
-              description: "Altura do vídeo em pixels",
-              example: 720
-            },
-            largura: {
-              type: "number",
-              description: "Largura do vídeo em pixels",
-              example: 1280
+              description: "Link da mídia",
+              example: "/uploads/eventos/507f1f77bcf86cd799439011/capa.jpg"
             }
           }
         },
-        description: "Mídias de vídeo do evento",
-        example: []
-      },
-      midiaCapa: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            _id: {
-              type: "string",
-              description: "ID da mídia",
-              example: "507f1f77bcf86cd799439011"
-            },
-            url: {
-              type: "string",
-              description: "URL da capa",
-              example: "/uploads/eventos/507f1f77bcf86cd799439011/capa/capa.jpg"
-            },
-            tamanhoMb: {
-              type: "number",
-              description: "Tamanho do arquivo em MB",
-              example: 2.5
-            },
-            altura: {
-              type: "number",
-              description: "Altura da imagem em pixels",
-              example: 720
-            },
-            largura: {
-              type: "number",
-              description: "Largura da imagem em pixels",
-              example: 1280
-            }
-          }
-        },
-        description: "Mídias de capa do evento",
-        example: []
-      },
-      midiaCarrossel: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            _id: {
-              type: "string",
-              description: "ID da mídia",
-              example: "507f1f77bcf86cd799439011"
-            },
-            url: {
-              type: "string",
-              description: "URL da imagem do carrossel",
-              example: "/uploads/eventos/507f1f77bcf86cd799439011/carrossel/carrossel1.jpg"
-            },
-            tamanhoMb: {
-              type: "number",
-              description: "Tamanho do arquivo em MB",
-              example: 1.8
-            },
-            altura: {
-              type: "number",
-              description: "Altura da imagem em pixels",
-              example: 720
-            },
-            largura: {
-              type: "number",
-              description: "Largura da imagem em pixels",
-              example: 1280
-            }
-          }
-        },
-        description: "Mídias do carrossel do evento",
+        description: "Mídias do evento",
         example: []
       },
       permissoes: {
@@ -260,6 +237,12 @@ const eventosSchemas = {
         description: "Permissões do evento",
         example: []
       },
+      createdAt: {
+        type: "string",
+        format: "date-time",
+        description: "Data de criação do evento",
+        example: "2025-07-08T21:35:10.742Z"
+      },
       updatedAt: {
         type: "string",
         format: "date-time",
@@ -286,21 +269,33 @@ const eventosSchemas = {
         description: "Local do evento",
         example: "Centro de Convenções - Novo Local"
       },
-      dataEvento: {
+      dataInicio: {
         type: "string",
         format: "date-time",
-        description: "Data e hora do evento",
+        description: "Data e hora de início do evento",
         example: "2025-08-20T14:00:00.000Z"
       },
-      linkInscricao: {
+      dataFim: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de fim do evento",
+        example: "2025-08-20T18:00:00.000Z"
+      },
+      link: {
         type: "string",
         description: "Link para inscrição no evento",
         example: "https://exemplo.com/nova-inscricao"
       },
       categoria: {
         type: "string",
+        enum: [
+          "academico", "palestra", "workshop", "seminario", "congresso", "minicurso",
+          "cultural", "esportivo", "social", "cientifico", "extensao", "pesquisa",
+          "feira", "mostra", "competicao", "formatura", "vestibular", "enem",
+          "institucional", "outros"
+        ],
         description: "Categoria do evento",
-        example: "tecnologia"
+        example: "workshop"
       },
       tags: {
         type: "array",
@@ -309,6 +304,44 @@ const eventosSchemas = {
         },
         description: "Tags do evento",
         example: ["tecnologia", "inovação", "workshops"]
+      },
+      cor: {
+        type: "integer",
+        minimum: 0,
+        description: "Código numérico da cor do evento",
+        example: 5
+      },
+      animacao: {
+        type: "integer",
+        minimum: 0,
+        description: "Código numérico da animação do evento",
+        example: 2
+      },
+      status: {
+        type: "integer",
+        enum: [0, 1],
+        description: "Status do evento (0 = inativo, 1 = ativo)",
+        example: 1
+      },
+      midia: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            midiTipo: {
+              type: "string",
+              description: "Tipo da mídia",
+              example: "capa"
+            },
+            midiLink: {
+              type: "string",
+              description: "Link da mídia",
+              example: "/uploads/eventos/507f1f77bcf86cd799439011/nova-capa.jpg"
+            }
+          }
+        },
+        description: "Mídias do evento",
+        example: []
       }
     }
   },
@@ -316,10 +349,10 @@ const eventosSchemas = {
     type: "object",
     properties: {
       status: {
-        type: "string",
-        enum: ["ativo", "inativo"],
-        description: "Novo status do evento",
-        example: "ativo"
+        type: "integer",
+        enum: [0, 1],
+        description: "Novo status do evento (0 = inativo, 1 = ativo)",
+        example: 1
       }
     },
     required: ["status"]
@@ -451,11 +484,11 @@ const eventosSchemas = {
       data: {
         type: "object",
         properties: {
-          evento: {
+          eventoId: {
             type: "string",
             example: "60b5f8c8d8f8f8f8f8f8f8"
           },
-          linkInscricao: {
+          link: {
             type: "string",
             example: "https://exemplo.com/inscricao"
           },

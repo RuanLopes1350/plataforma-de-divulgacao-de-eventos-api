@@ -1,6 +1,6 @@
 import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
 
-// Schema para uma única mídia
+// Schema para uma única mídia (nova estrutura)
 const MidiaSchema = {
   type: "object",
   properties: {
@@ -9,266 +9,155 @@ const MidiaSchema = {
       description: "ID único da mídia",
       example: "507f1f77bcf86cd799439012"
     },
-    url: {
+    midiTipo: {
       type: "string",
-      description: "URL relativa da mídia no servidor",
-      example: "/uploads/capa/1673432100000-capa.jpg"
+      enum: ["imagem", "video"],
+      description: "Tipo da mídia determinado automaticamente pelo mimetype",
+      example: "imagem"
     },
-    tamanhoMb: {
-      type: "number",
-      description: "Tamanho do arquivo em MB",
-      example: 2.45
-    },
-    altura: {
-      type: "number",
-      description: "Altura da mídia em pixels",
-      example: 720
-    },
-    largura: {
-      type: "number",
-      description: "Largura da mídia em pixels",
-      example: 1280
+    midiLink: {
+      type: "string",
+      description: "URL pública da mídia no MinIO",
+      example: "http://localhost:9000/eventos/507f1f77bcf86cd799439012-foto.jpg"
     }
   },
-  required: ["_id", "url", "tamanhoMb", "altura", "largura"]
+  required: ["_id", "midiTipo", "midiLink"]
 };
 
-const MidiaCompleta = {
+// Schema para resultado individual de upload
+const ResultadoUploadSchema = {
   type: "object",
   properties: {
-    tipo: {
+    arquivo: {
       type: "string",
-      enum: ["capa", "video", "carrossel"],
-      description: "Tipo da mídia",
-      example: "capa"
+      description: "Nome original do arquivo",
+      example: "foto.jpg"
     },
-    _id: {
+    status: {
       type: "string",
-      description: "ID único da mídia",
-      example: "507f1f77bcf86cd799439012"
+      enum: ["sucesso", "erro"],
+      description: "Status do processamento do arquivo",
+      example: "sucesso"
     },
     url: {
       type: "string",
-      description: "URL completa da mídia (com prefixo do servidor)",
-      example: "http://localhost:5015/uploads/60b5f8c8d8f8f8f8f8f8f8/capa/1673432100000-capa.jpg"
+      description: "URL pública da mídia (apenas para sucessos)",
+      example: "http://localhost:9000/eventos/507f1f77bcf86cd799439012-foto.jpg"
     },
-    tamanhoMb: {
-      type: "number",
-      description: "Tamanho do arquivo em MB",
-      example: 2.45
+    tipo: {
+      type: "string",
+      enum: ["imagem", "video"],
+      description: "Tipo da mídia (apenas para sucessos)",
+      example: "imagem"
     },
-    altura: {
-      type: "number",
-      description: "Altura da mídia em pixels",
-      example: 720
-    },
-    largura: {
-      type: "number",
-      description: "Largura da mídia em pixels",
-      example: 1280
+    erro: {
+      type: "string",
+      description: "Mensagem de erro (apenas para erros)",
+      example: "O arquivo enviado não é uma mídia válida."
     }
   },
-  required: ["tipo", "_id", "url", "tamanhoMb", "altura", "largura"]
+  required: ["arquivo", "status"]
+};
+
+// Schema de resposta para upload múltiplo
+const MultipleUploadResponse = {
+  type: "object",
+  properties: {
+    statusCode: {
+      type: "number",
+      description: "Código de status HTTP",
+      example: 200
+    },
+    message: {
+      type: "string",
+      description: "Mensagem de resposta",
+      example: "3 de 3 arquivo(s) adicionado(s) com sucesso."
+    },
+    data: {
+      type: "object",
+      properties: {
+        evento: {
+          type: "object",
+          properties: {
+            _id: {
+              type: "string",
+              description: "ID do evento",
+              example: "60b5f8c8d8f8f8f8f8f8f8"
+            },
+            midia: {
+              type: "array",
+              items: MidiaSchema,
+              description: "Array de mídias do evento atualizado"
+            }
+          }
+        },
+        resultados: {
+          type: "array",
+          items: ResultadoUploadSchema,
+          description: "Relatório detalhado de cada arquivo processado"
+        },
+        totalProcessados: {
+          type: "number",
+          description: "Total de arquivos processados",
+          example: 3
+        },
+        totalSucesso: {
+          type: "number", 
+          description: "Total de arquivos processados com sucesso",
+          example: 3
+        },
+        totalErros: {
+          type: "number",
+          description: "Total de arquivos que falharam",
+          example: 0
+        }
+      }
+    }
+  }
+};
+
+// Schema de resposta para deletar mídia
+const DeleteMidiaResponse = {
+  type: "object",
+  properties: {
+    statusCode: {
+      type: "number",
+      description: "Código de status HTTP",
+      example: 200
+    },
+    message: {
+      type: "string",
+      description: "Mensagem de confirmação",
+      example: "Mídia '60b5f8c8d8f8f8f8f8f8f8fa' deletada com sucesso."
+    },
+    data: {
+      type: "object",
+      properties: {
+        _id: {
+          type: "string",
+          description: "ID do evento",
+          example: "60b5f8c8d8f8f8f8f8f8f8"
+        },
+        titulo: {
+          type: "string",
+          description: "Título do evento",
+          example: "Evento Exemplo"
+        },
+        midia: {
+          type: "array",
+          items: MidiaSchema,
+          description: "Array de mídias restantes no evento"
+        }
+      }
+    }
+  }
 };
 
 const uploadSchemas = {
-  MidiaCompleta,
-  UploadResponse: {
-    type: "object",
-    properties: {
-      _id: {
-        type: "string",
-        description: "ID do evento",
-        example: "507f1f77bcf86cd799439011"
-      },
-      midiaCapa: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias de capa (máximo 1)",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439012",
-            "url": "/uploads/capa/1673432100000-capa.jpg",
-            "tamanhoMb": 2.45,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      },
-      midiaVideo: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias de vídeo (máximo 1)",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439013",
-            "url": "/uploads/video/1673432100000-video.mp4",
-            "tamanhoMb": 25.8,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      },
-      midiaCarrossel: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias do carrossel (múltiplas)",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439014",
-            "url": "/uploads/carrossel/1673432100000-img1.jpg",
-            "tamanhoMb": 1.85,
-            "altura": 720,
-            "largura": 1280
-          },
-          {
-            "_id": "507f1f77bcf86cd799439015",
-            "url": "/uploads/carrossel/1673432100000-img2.jpg",
-            "tamanhoMb": 2.12,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      }
-    },
-    required: ["_id"]
-  },
-  
-  MidiasEventoResponse: {
-    type: "object",
-    properties: {
-      capa: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias de capa",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439012",
-            "url": "/uploads/capa/1673432100000-capa.jpg",
-            "tamanhoMb": 2.45,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      },
-      carrossel: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias do carrossel",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439014",
-            "url": "/uploads/carrossel/1673432100000-img1.jpg",
-            "tamanhoMb": 1.85,
-            "altura": 720,
-            "largura": 1280
-          },
-          {
-            "_id": "507f1f77bcf86cd799439015",
-            "url": "/uploads/carrossel/1673432100000-img2.jpg",
-            "tamanhoMb": 2.12,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      },
-      video: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias de vídeo",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439013",
-            "url": "/uploads/video/1673432100000-video.mp4",
-            "tamanhoMb": 25.8,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      }
-    },
-    required: ["capa", "carrossel", "video"]
-  },
-  
-  DeleteMidiaResponse: {
-    type: "object",
-    allOf: [
-      MidiaSchema,
-      {
-        description: "Dados da mídia deletada"
-      }
-    ]
-  },
-  
-  MidiaCapaResponse: {
-    type: "object",
-    properties: {
-      midiaCapa: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias de capa do evento",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439012",
-            "url": "/uploads/capa/1673432100000-capa.jpg",
-            "tamanhoMb": 2.45,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      }
-    },
-    required: ["midiaCapa"]
-  },
-  
-  MidiaVideoResponse: {
-    type: "object",
-    properties: {
-      midiaVideo: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias de vídeo do evento",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439013",
-            "url": "/uploads/video/1673432100000-video.mp4",
-            "tamanhoMb": 25.8,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      }
-    },
-    required: ["midiaVideo"]
-  },
-  
-  MidiaCarrosselResponse: {
-    type: "object",
-    properties: {
-      midiaCarrossel: {
-        type: "array",
-        items: MidiaSchema,
-        description: "Array de mídias do carrossel do evento",
-        example: [
-          {
-            "_id": "507f1f77bcf86cd799439014",
-            "url": "/uploads/carrossel/1673432100000-img1.jpg",
-            "tamanhoMb": 1.85,
-            "altura": 720,
-            "largura": 1280
-          },
-          {
-            "_id": "507f1f77bcf86cd799439015",
-            "url": "/uploads/carrossel/1673432100000-img2.jpg",
-            "tamanhoMb": 2.12,
-            "altura": 720,
-            "largura": 1280
-          }
-        ]
-      }
-    },
-    required: ["midiaCarrossel"]
-  }
+  MidiaSchema,
+  ResultadoUploadSchema,
+  MultipleUploadResponse,
+  DeleteMidiaResponse
 };
 
 // Geração de examples dinâmicos
@@ -302,5 +191,7 @@ export {
   generateUploadExamples, 
   createDeepCopies,
   MidiaSchema,
-  MidiaCompleta
+  ResultadoUploadSchema,
+  MultipleUploadResponse,
+  DeleteMidiaResponse
 };
