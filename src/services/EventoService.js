@@ -271,36 +271,22 @@ class EventoService {
         });
     }
 
-    // Busca eventos que devem ser exibidos no totem no momento atual
-    async listarParaTotem() {
-        const agora = new Date();
-
-        // Determinar dia da semana atual (0=domingo, 1=segunda, etc.)
-        const diaSemana = agora.getDay();
-        const diasSemanaMap = {
-            0: 'domingo',
-            1: 'segunda',
-            2: 'terca',
-            3: 'quarta',
-            4: 'quinta',
-            5: 'sexta',
-            6: 'sabado'
-        };
-        const diaAtual = diasSemanaMap[diaSemana];
-
-        // Determinar período do dia atual
-        const horaAtual = agora.getHours();
-        let periodoAtual = '';
-        if (horaAtual >= 6 && horaAtual < 12) {
-            periodoAtual = 'manha';
-        } else if (horaAtual >= 12 && horaAtual < 18) {
-            periodoAtual = 'tarde';
-        } else {
-            periodoAtual = 'noite';
+    async generateQRCodeImage(link) {
+        try {
+            const dataUrl = await QRCode.toDataURL(link);
+            const buffer = await QRCode.toBuffer(link);
+            return { dataUrl, buffer };
+        } catch (error) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                errorType: 'internalServerError',
+                field: 'QRCode',
+                details: [],
+                customMessage: 'Erro ao gerar código QR.'
+            });
         }
-
-        return await this.repository.listarParaTotem(agora, diaAtual, periodoAtual);
     }
+
 }
 
 export default EventoService;

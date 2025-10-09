@@ -1,12 +1,16 @@
 // src/routes/eventoRoutes.js
 
 import express from "express";
-import { uploadMultiploParcial } from "../config/multerConfig.js";
 
 import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 import EventoController from '../controllers/EventoController.js';
 import UploadController from "../controllers/UploadController.js";
 import { asyncWrapper } from '../utils/helpers/index.js';
+
+import multer from 'multer';
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 
 const router = express.Router();
 
@@ -23,25 +27,10 @@ router
     .delete("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.deletar.bind(eventoController)))
 
     // Rotas Adicionais (Mídias)
-    .post("/eventos/:id/midia/:tipo", AuthMiddleware, uploadMultiploParcial, asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
+    .post("/eventos/:id/midias", AuthMiddleware, upload.array('files'), asyncWrapper(uploadController.adicionarMultiplasMidias.bind(uploadController)))
     .delete("/eventos/:eventoId/midia/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
     // Nova rota específica para o totem
     .get("/totem/eventos", asyncWrapper(eventoController.listarParaTotem.bind(eventoController)))
 
 export default router;
-
-/*
-// ✅ POST para adicionar qualquer tipo de mídia. O tipo vai no corpo da requisição (form-data).
-.post("/eventos/:eventoId/midias", AuthMiddleware, uploadMultiploParcial, asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
-
-// ✅ GET para listar todas as mídias ou filtrar por tipo via query param (ex: /midias?tipo=capa)
-.get("/eventos/:eventoId/midias", AuthMiddleware, asyncWrapper(uploadController.listarMidias.bind(uploadController)))
-
-// ✅ DELETE para remover uma mídia específica pelo seu ID único.
-.delete("/eventos/:eventoId/midias/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
-
-colocar filtro na midia para selecinar o tipo (capa, video, carrossel)
-mudar para tudo ser midias
-
-*/

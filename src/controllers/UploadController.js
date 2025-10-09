@@ -1,7 +1,8 @@
 // src/controllers/UploadController.js
 
 import UploadService from '../services/UploadService.js';
-import { ParametrosUploadSchema, QueryListagemSchema } from '../utils/validators/schemas/zod/UploadSchema.js';
+import { midiaUploadValidationSchema,} from '../utils/validators/schemas/zod/EventoSchema.js';
+import ObjectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
     CommonResponse,
     CustomError,
@@ -14,6 +15,7 @@ import {
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { da } from '@faker-js/faker';
 
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFile);
@@ -23,81 +25,82 @@ class UploadController {
         this.service = new UploadService();
     }
 
-    // Função auxiliar para determinar Content-Type
-    _getContentType(filename) {
-        const extensao = path.extname(filename).slice(1).toLowerCase();
-        const mimeTypes = {
-            jpg: 'image/jpeg',
-            jpeg: 'image/jpeg',
-            png: 'image/png',
-            gif: 'image/gif',
-            webp: 'image/webp',
-            svg: 'image/svg+xml',
-            mp4: 'video/mp4',
-            webm: 'video/webm',
-            ogg: 'video/ogg'
-        };
-        return mimeTypes[extensao] || 'application/octet-stream';
-    }
-
-    // POST /eventos/:id/midia/:tipo
-    async adicionarMidia(req, res) {
-        // Validar parâmetros usando Zod
-        const { id: eventoId, tipo } = ParametrosUploadSchema.parse(req.params);
+    // POST /eventos/:id/midias (múltiplas mídias)
+    async adicionarMultiplasMidias(req, res) {
+        const eventoId = ObjectIdSchema.parse(req.params.id);
         const usuarioLogado = req.user;
         
-        const files = req.files; // Array de arquivos (carrossel)
-        const file = req.file;   // Arquivo único (capa/video)
-
-        const hasFiles = (tipo === 'carrossel' && files && files.length > 0) || (tipo !== 'carrossel' && file);
-
-        if (!hasFiles) {
-            const campoEsperado = tipo === 'carrossel' ? 'files' : 'file';
+        if (!req.files || req.files.length === 0) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: campoEsperado,
-                customMessage: `Arquivo(s) de mídia não enviado(s). Use o campo '${campoEsperado}' para o tipo '${tipo}'.`
+                errorType: "validationError",
+                field: "arquivos",
+                customMessage: "Nenhum arquivo enviado. Por favor, inclua pelo menos um arquivo.",
             });
         }
 
-        let resultado;
-
-        if (tipo === 'carrossel') {
-            resultado = await this.service.adicionarMultiplasMidias(eventoId, tipo, files, usuarioLogado._id);
-            return CommonResponse.created(res, resultado, `${files.length} arquivo(s) de carrossel salvos com sucesso.`);
-        } else {
-            resultado = await this.service.adicionarMidia(eventoId, tipo, file, usuarioLogado._id);
-            return CommonResponse.created(res, resultado, `Mídia (${tipo}) salva com sucesso.`);
+        // Validar cada arquivo com Zod
+        const validatedFiles = [];
+        for (const file of req.files) {
+            try {
+                const validatedFile = midiaUploadValidationSchema.parse(file);
+                validatedFiles.push(validatedFile);
+            } catch (error) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: "validationError",
+                    field: file.originalname || "arquivo",
+                    customMessage: `Arquivo inválido: ${error.message}`,
+                });
+            }
         }
-    }
 
-    // GET /eventos/:id/midias
-    async listar(req, res) {
-        // Validar query parameters usando Zod
-        QueryListagemSchema.parse(req.query);
+        const resultado = await this.service.adicionarMultiplasMidias(
+            eventoId, 
+            validatedFiles, 
+            usuarioLogado._id
+        );
+
+        const mensagem = `${resultado.totalSucesso} de ${resultado.totalProcessados} arquivo(s) adicionado(s) com sucesso.`;
         
-        const midias = await this.service.listar(req);
-
-        const { tipo } = req.query;
-        const mensagem = tipo 
-            ? `Mídias do tipo '${tipo}' retornadas com sucesso.`
-            : `Mídias do evento retornadas com sucesso.`;
-
-        return CommonResponse.success(res, midias, 200, mensagem);
+        return CommonResponse.success(
+            res,
+            resultado,
+            HttpStatusCodes.OK.code,
+            mensagem
+        );
     }
-
 
 
     //DELETE /eventos/:id/midia/:tipo/:id
     async deletarMidia(req, res) {
-        const { eventoId, tipo, midiaId } = req.params;
+        const { eventoId, midiaId } = req.params;
+        
+        const validatedEventoId = ObjectIdSchema.parse(eventoId);
+        const validatedMidiaId = ObjectIdSchema.parse(midiaId);
+        
         const usuarioLogado = req.user;
 
-        const evento = await this.service.deletarMidia(eventoId, tipo, midiaId, usuarioLogado._id);
+        const evento = await this.service.deletarMidia(validatedEventoId, validatedMidiaId, usuarioLogado._id);
 
-        return CommonResponse.success(res, evento, 200, `Midia '${tipo}' do evento deletada com sucesso.`);
+        return CommonResponse.success(res, evento, 200, `Mídia '${validatedMidiaId}' deletada com sucesso.`);
     }
+
+    // Método auxiliar para determinar o tipo da mídia
+    _determinarTipoMidia(mimetype) {
+        if (mimetype.startsWith('image/')) {
+            return 'imagem';
+        } else if (mimetype.startsWith('video/')) {
+            return 'video';
+        }
+        throw new CustomError({
+            statusCode: HttpStatusCodes.BAD_REQUEST.code,
+            errorType: "validationError",
+            field: "mimetype",
+            customMessage: "Tipo de mídia não suportado.",
+        });
+    }
+
 }
 
 export default UploadController;

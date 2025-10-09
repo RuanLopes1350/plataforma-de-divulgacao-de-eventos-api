@@ -52,10 +52,10 @@ async function seedUsuarios() {
         },
         {
             nome: "Eduardo Tartas",
-            email: "eduardotartas@email.com",
+            email: "eduardo@gmail.com",
             senha: gerarSenhaHash(),
             status: "ativo"
-        }
+        },
     ];
 
     await Usuario.collection.insertMany(usuariosFixos);

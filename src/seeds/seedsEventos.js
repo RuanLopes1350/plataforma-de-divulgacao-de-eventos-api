@@ -103,10 +103,8 @@ async function seedEventos(usuarios) {
     await Evento.collection.insertMany(eventosFixos);
     console.log(`${eventosFixos.length} Eventos fixos inseridos com sucesso!`);
 
-    // Const que recebe o mapeamento global para ser usado na criação dos eventos aleatórios
-    const mapping = await getGlobalFakeMapping();
+    const mapping = await globalFakeMapping();
 
-    // Gera eventos aleatórios
     const eventosAleatorios = [];
 
     for(let i = 0; i < 20; i++) {
@@ -129,14 +127,14 @@ async function seedEventos(usuarios) {
                 _id: usuarios[i % usuarios.length]._id,
                 nome: usuarios[i % usuarios.length].nome
             },
-            link: mapping.link(),
-            tags: mapping.tags(),
-            categoria: mapping.categoria(),
-            cor: mapping.cor(),
-            animacao: mapping.animacao(),
-            status: mapping.status(),
-            midia: mapping.midia(),
-            permissoes: [],
+            link: mapping.linkInscricao ? mapping.linkInscricao() : mapping.link || '',
+            tags: Array.isArray(mapping.tags) ? mapping.tags() .join(',') : (mapping.tags ? mapping.tags() : ''),
+            categoria: mapping.categoria ? mapping.categoria() : 'institucional',
+            cor: 0,
+            animacao: 0,
+            status: toStatusNumber(mapping.status ? mapping.status() : 'inativo'),
+            midia: midiaArr,
+            permissoes: mapping.permissoes ? mapping.permissoes() : [],
         });
     };
 
