@@ -103,7 +103,7 @@ async function seedEventos(usuarios) {
     await Evento.collection.insertMany(eventosFixos);
     console.log(`${eventosFixos.length} Eventos fixos inseridos com sucesso!`);
 
-    const mapping = await globalFakeMapping();
+    const mapping = await getGlobalFakeMapping();
 
     const eventosAleatorios = [];
 
@@ -133,7 +133,7 @@ async function seedEventos(usuarios) {
             cor: 0,
             animacao: 0,
             status: toStatusNumber(mapping.status ? mapping.status() : 'inativo'),
-            midia: midiaArr,
+            midia: mapping.midia,
             permissoes: mapping.permissoes ? mapping.permissoes() : [],
         });
     };
