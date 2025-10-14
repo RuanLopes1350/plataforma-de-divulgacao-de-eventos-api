@@ -55,6 +55,34 @@ class Evento {
                     type: Date, 
                     required: true 
                 },
+                exibDia: {
+                    type: String,
+                    required: true,
+                    index: true
+                },
+                exibManha: {
+                    type: Boolean,
+                    required: true,
+                    index: true
+                },
+                exibTarde: {
+                    type: Boolean,
+                    required: true,
+                    index: true
+                },
+                exibNoite: {
+                    type: Boolean,
+                    required: true,
+                    index: true
+                },
+                exibInicio: {
+                    type: Date,
+                    required: true
+                },
+                exibFim: {
+                    type: Date,
+                    required: true
+                },
                 link: { 
                     type: String,
                 },

@@ -110,6 +110,11 @@ class EventoController {
         
         return CommonResponse.success(res, { message: messages.validation.generic.resourceDeleted('Evento'), data });
     }
+
+    async listarParaTotem(req, res) {
+        const data = await this.service.listarParaTotem();
+        return CommonResponse.success(res, data);
+    }
 }
 
 export default EventoController;

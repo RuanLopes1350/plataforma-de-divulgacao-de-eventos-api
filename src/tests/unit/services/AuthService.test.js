@@ -19,9 +19,6 @@ const mockTokenUtil = {
     decodePasswordRecoveryToken: jest.fn()
 };
 
-// Mock do fetch global para o envio de email
-global.fetch = jest.fn();
-
 describe('AuthService', () => {
     let authService;
     let mockRepository;
@@ -37,9 +34,6 @@ describe('AuthService', () => {
 
         // Mock das variáveis de ambiente
         process.env.JWT_SECRET_REFRESH_TOKEN = 'test_refresh_secret';
-        process.env.MAIL_API_URL = 'https://test-mail-api.com';
-        process.env.MAIL_API_KEY = 'test_api_key';
-        process.env.COMPANY_NAME = 'Test Company';
         process.env.SINGLE_SESSION_REFRESH_TOKEN = 'false';
         process.env.JWT_SECRET_PASSWORD_RECOVERY = 'test_recovery_secret';
     });
@@ -205,7 +199,7 @@ describe('AuthService', () => {
     describe('recuperaSenha', () => {
         const emailData = { email: 'test@example.com' };
 
-        it('deve enviar email de recuperação com sucesso', async () => {
+        it('deve gerar token de recuperação com sucesso', async () => {
             const mockUser = {
                 _id: 'user123',
                 email: 'test@example.com',
@@ -215,12 +209,6 @@ describe('AuthService', () => {
             mockRepository.buscarPorEmail.mockResolvedValue(mockUser);
             mockTokenUtil.generatePasswordRecoveryToken.mockResolvedValue('recovery_token');
             mockRepository.alterar.mockResolvedValue(true);
-            
-            // Mock fetch para simular envio de email bem-sucedido
-            global.fetch.mockResolvedValue({
-                ok: true,
-                json: jest.fn().mockResolvedValue({ success: true })
-            });
 
             const result = await authService.recuperaSenha(emailData);
 
@@ -232,16 +220,8 @@ describe('AuthService', () => {
                     tokenUnico: 'recovery_token'
                 })
             );
-            expect(global.fetch).toHaveBeenCalledWith(
-                expect.stringContaining('/emails/send'),
-                expect.objectContaining({
-                    method: 'POST',
-                    headers: expect.objectContaining({
-                        'x-api-key': 'test_api_key'
-                    })
-                })
-            );
-            expect(result.message).toContain('e-mail foi enviado');
+            expect(result.message).toContain('recuperação de senha');
+            expect(result.token).toBe('recovery_token');
         });
 
         it('deve lançar erro quando usuário não for encontrado', async () => {
@@ -260,27 +240,6 @@ describe('AuthService', () => {
             mockRepository.buscarPorEmail.mockResolvedValue(mockUser);
             mockTokenUtil.generatePasswordRecoveryToken.mockResolvedValue('recovery_token');
             mockRepository.alterar.mockResolvedValue(null);
-
-            await expect(authService.recuperaSenha(emailData)).rejects.toThrow(CustomError);
-        });
-
-        it('deve lançar erro quando falhar ao enviar email', async () => {
-            const mockUser = {
-                _id: 'user123',
-                email: 'test@example.com',
-                nome: 'Test User'
-            };
-
-            mockRepository.buscarPorEmail.mockResolvedValue(mockUser);
-            mockTokenUtil.generatePasswordRecoveryToken.mockResolvedValue('recovery_token');
-            mockRepository.alterar.mockResolvedValue(true);
-            
-            // Mock fetch para simular erro no envio de email
-            global.fetch.mockResolvedValue({
-                ok: false,
-                status: 500,
-                statusText: 'Internal Server Error'
-            });
 
             await expect(authService.recuperaSenha(emailData)).rejects.toThrow(CustomError);
         });

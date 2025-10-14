@@ -30,21 +30,5 @@ services:
     command: mongod --quiet --logpath /dev/null
     restart: always
 
-  mailsender:
-    container_name: mailsender-service
-    build:
-      context: ./mailsender
-      dockerfile: Dockerfile
-    env_file:
-      - ./mailsender/.env
-    ports:
-      - "5013:5013"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5013/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
 volumes:
   mongo-data-dev:

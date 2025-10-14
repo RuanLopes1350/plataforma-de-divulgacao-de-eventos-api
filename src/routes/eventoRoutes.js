@@ -30,4 +30,7 @@ router
     .post("/eventos/:id/midias", AuthMiddleware, upload.array('files'), asyncWrapper(uploadController.adicionarMultiplasMidias.bind(uploadController)))
     .delete("/eventos/:eventoId/midia/:midiaId", AuthMiddleware, asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
+    // Nova rota específica para o totem
+    .get("/totem/eventos", asyncWrapper(eventoController.listarParaTotem.bind(eventoController)))
+
 export default router;

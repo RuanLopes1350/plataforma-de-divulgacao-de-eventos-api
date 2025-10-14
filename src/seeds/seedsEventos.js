@@ -12,7 +12,7 @@ import Usuario from "../models/Usuario.js";
 import Evento from "../models/Evento.js";
 
 //Mapeador
-import globalFakeMapping from "./globalFakeMapping.js";
+import getGlobalFakeMapping from "./globalFakeMapping.js";
 
 // ----------------------------------------------------------------------------
 // 1) Conectar ao banco de dados
@@ -47,12 +47,18 @@ async function seedEventos(usuarios) {
             local: "Auditório Principal",
             dataInicio: new Date("2025-05-25T09:00:00Z"),
             dataFim: new Date("2025-05-25T18:00:00Z"),
+            exibDia: "domingo,segunda,terca,quarta,quinta,sexta,sabado",
+            exibManha: true,
+            exibTarde: true,
+            exibNoite: false,
+            exibInicio: new Date("2025-05-20T00:00:00Z"),
+            exibFim: new Date("2025-12-26T23:59:59Z"),
             organizador: {
                 _id: usuarios[0]._id,
                 nome: usuarios[0].nome
             },
             link: "https://forms.gle/exemplo",
-            tags: "Tecnologia,Inovação",
+            tags: ["Tecnologia", "Inovação"],
             categoria: "academico",
             cor: 0,
             animacao: 0,
@@ -70,12 +76,18 @@ async function seedEventos(usuarios) {
             local: "Quadra Poliesportiva",
             dataInicio: new Date("2025-05-15T08:00:00Z"),
             dataFim: new Date("2025-05-15T20:00:00Z"),
+            exibDia: "segunda,terca,quarta,quinta,sexta",
+            exibManha: true,
+            exibTarde: true,
+            exibNoite: true,
+            exibInicio: new Date("2025-05-10T00:00:00Z"),
+            exibFim: new Date("2025-05-16T23:59:59Z"),
             organizador: {
                 _id: usuarios[1]._id,
                 nome: usuarios[1].nome
             },
             link: "https://forms.gle/exemplo",
-            tags: "Esporte,Interclasse",
+            tags: ["Esporte", "Interclasse"],
             categoria: "esportivo",
             cor: 0,
             animacao: 0,
@@ -99,14 +111,18 @@ async function seedEventos(usuarios) {
         const dataInicio = mapping.dataInicio();
         const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // +2h
 
-        const midiaArr = unifyMidias(mapping.midiaVideo ? mapping.midiaVideo() : [], mapping.midiaCapa ? mapping.midiaCapa() : [], mapping.midiaCarrossel ? mapping.midiaCarrossel() : []);
-
         eventosAleatorios.push({
             titulo: mapping.titulo(),
             descricao: mapping.descricao(),
             local: mapping.local(),
             dataInicio,
             dataFim,
+            exibDia: mapping.exibDia(),
+            exibManha: mapping.exibManha(),
+            exibTarde: mapping.exibTarde(),
+            exibNoite: mapping.exibNoite(),
+            exibInicio: mapping.exibInicio(),
+            exibFim: mapping.exibFim(),
             organizador: {
                 _id: usuarios[i % usuarios.length]._id,
                 nome: usuarios[i % usuarios.length].nome

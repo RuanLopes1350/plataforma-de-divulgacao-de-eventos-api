@@ -2,7 +2,6 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { URL } from 'url';
-import SendMail from '../utils/SendMail.js';
 import logger from '../utils/logger.js';
 
 dotenv.config();
@@ -36,9 +35,6 @@ class DbConnect {
 
             mongoose.connection.on('error', (err) => {
                 logger.error(`Mongoose erro: ${err}`);
-                if (process.env.NODE_ENV !== 'test') {
-                    // SendMail.enviaEmailErrorDbConect(err, new URL(import.meta.url).pathname, new Date());
-                }
             });
 
             mongoose.connection.on('disconnected', () => {
@@ -56,9 +52,6 @@ class DbConnect {
             logger.info('Conexão com o banco estabelecida!');
         } catch (error) {
             logger.error(`Erro na conexão com o banco de dados: ${error.message}`);
-            if (process.env.NODE_ENV !== 'test') {
-                SendMail.enviaEmailErrorDbConect(error, new URL(import.meta.url).pathname, new Date());
-            }
             throw error;
         }
     }
@@ -74,9 +67,6 @@ class DbConnect {
             }
         } catch (error) {
             logger.error(`Erro ao desconectar do banco de dados: ${error.message}`);
-            if (process.env.NODE_ENV !== 'test') {
-                SendMail.enviaEmailErrorDbConect(error, new URL(import.meta.url).pathname, new Date());
-            }
             throw error;
         }
     }

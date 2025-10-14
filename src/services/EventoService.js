@@ -22,26 +22,26 @@ class EventoService {
         const data = await this.repository.cadastrar(dadosEvento);
         return data
     }
-    
+
     // GET /eventos && GET /eventos/:id
     async listar(req, usuarioId, opcoes = {}) {
-        if(typeof req === 'string') {
+        if (typeof req === 'string') {
             objectIdSchema.parse(req);
-            
+
             const eventoReq = { params: { id: req } };
             const evento = await this.repository.listar(eventoReq);
-            
+
             return evento;
         }
-        
+
         if (!req.query) req.query = {};
         if (!req.user && usuarioId) req.user = { _id: usuarioId };
-        
+
         // Validar query parameters se existirem
         if (Object.keys(req.query).length > 0) {
             EventoQuerySchema.parse(req.query);
         }
-        
+
         if (opcoes.apenasVisiveis && usuarioId) {
             // Aqui em "Apenas visíveis" retorna eventos do usuário e eventos com permissão compartilhada
             // Permite visualizar eventos de qualquer status (ativo, inativo)
@@ -52,11 +52,11 @@ class EventoService {
 
         return await this.repository.listar(req);
     }
-    
+
     // PATCH /eventos/:id
     async alterar(id, parsedData, usuarioId) {
         const evento = await this.ensureEventExists(id);
-        
+
         await this.ensureUserIsOwner(evento, usuarioId, false);
         // Se houver tags novas no parsedData, normalize e una com as tags existentes
         if (parsedData.tags) {
@@ -68,15 +68,15 @@ class EventoService {
         const data = await this.repository.alterar(id, parsedData);
         return data;
     }
-    
+
     // PATCH /eventos/:id/compartilhar
     async compartilharPermissao(eventoId, email, permissao, expiraEm, usuarioId) {
         const evento = await this.ensureEventExists(eventoId);
 
         await this.ensureUserIsOwner(evento, usuarioId, true);
-        
+
         const usuarioDestino = await this.usuarioRepository.buscarPorEmail(email);
-        
+
         if (!usuarioDestino) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.NOT_FOUND.code,
@@ -97,7 +97,7 @@ class EventoService {
             });
         }
 
-        const permissaoExistente = evento.permissoes?.find(p => 
+        const permissaoExistente = evento.permissoes?.find(p =>
             p.usuario.toString() === usuarioDestino._id.toString() &&
             new Date(p.expiraEm) > new Date()
         );
@@ -125,19 +125,19 @@ class EventoService {
         };
 
         await this.repository.model.updateOne(filtro, update);
-        
+
         return await this.repository.listarPorId(eventoId);
     }
 
     // DELETE /eventos/:id
     async deletar(id, usuarioId) {
         const evento = await this.ensureEventExists(id);
-        
+
         await this.ensureUserIsOwner(evento, usuarioId, true);
-        
+
         const { default: UploadService } = await import('./UploadService.js');
         new UploadService().limparMidiasDoEvento(evento);
-        
+
         const data = await this.repository.deletar(id);
         return data;
     }
@@ -217,8 +217,8 @@ class EventoService {
     async ensureEventExists(id) {
         objectIdSchema.parse(id);
         const evento = await this.repository.listarPorId(id);
-        
-        if(!evento) {
+
+        if (!evento) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
@@ -230,7 +230,7 @@ class EventoService {
         return evento;
     }
 
- 
+
     // Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
     async ensureUserIsOwner(evento, usuarioId, ownerOnly = false) {
         // Se for o dono, permite sempre as requisições

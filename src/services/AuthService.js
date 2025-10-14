@@ -5,10 +5,8 @@ import jwt from 'jsonwebtoken';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import tokenUtil from '../utils/TokenUtil.js';
 import { v4 as uuid } from 'uuid';
-import SendMail from '../utils/SendMail.js';
 import TokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
-import MailServiceClient from '../utils/MailServiceClient.js';
 
 import UsuarioRepository from '../repositories/UsuarioRepository.js';
 
@@ -147,108 +145,16 @@ class AuthService {
         }
 
         // ───────────────────────────────────────────────
-        // Passo 4 – Enviar e-mail com token + link
+        // Passo 4 – Retornar resposta ao cliente
         // ───────────────────────────────────────────────
-        /**
-         * Usar CHAVE MAIL_API_KEY no .env para requisitar o envio de e-mail em https://edurondon.tplinkdns.com/mail/emails/send
-         * Exemplo de corpo do e-mail:
-         * Corpo do e-mail:
-         * {
-            "to": "falecomgilberto@gmail.com",
-            "subject": "Redefinir senha",
-            "template": "password-reset",
-            "data": {
-                "name": "Gilberto",
-                "resetUrl": "https://edurondon.tplinkdns.com?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.yJpZCI6IjY4NDFmNWVhMmQ5YWYxOWVlN2Y1YmY3OCIsImlhdCI6MTc0OTU2OTI1MiwiZXhwIjoxNzQ5NTcyODUyfQ.D_bW22QyKqZ2YL6lv7kRo-_zY54v3esNHsxK7DKeOq0",
-                "expirationMinutes": 30,
-                "year": 2025,
-                "company": "Exemplo Ltda"
-                }
-            }
-         * 
-         */
-
-        const resetUrl = `${process.env.SYSTEM_URL}/auth/?token=${tokenUnico}`;
-        console.log('URL de redefinição de senha:', resetUrl);
-        const emailData = {
-            to: userEncontrado.email,
-            subject: 'Redefinir senha',
-            template: 'password-reset',
-            data: {
-                name: userEncontrado.nome,
-                resetUrl: resetUrl,
-                expirationMinutes: 60, // Expiração em minutos
-                year: new Date().getFullYear(),
-                company: process.env.COMPANY_NAME || 'Plataforma de Eventos'
-            }
-        };
-        console.log('Dados do e-mail:', emailData);
-
-
-        // Criar função para fazer a chamada para enviar o e-mail
-        // Necessário passar apiKey presente em MAIL_API_KEY
-        const sendMail = async (emailData) => {
-            console.log('Enviando e-mail de recuperação de senha para:', emailData.to);
-            
-            // Implementar timeout configurável
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), process.env.MAIL_API_TIMEOUT || 30000);
-            
-            try {
-                const response = await fetch(`${process.env.MAIL_API_URL}/emails/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': process.env.MAIL_API_KEY
-                    },
-                    body: JSON.stringify(emailData),
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Erro ao enviar e-mail: ${response.status} ${response.statusText} - ${errorText}`);
-                }
-                
-                const responseData = await response.json();
-                console.log('E-mail enviado com sucesso:', responseData);
-                
-            } catch (error) {
-                clearTimeout(timeoutId);
-                console.error('Erro ao enviar e-mail:', error);
-                
-                if (error.name === 'AbortError') {
-                    throw new CustomError({
-                        statusCode: HttpStatusCodes.REQUEST_TIMEOUT.code,
-                        field: 'E-mail',
-                        details: [],
-                        customMessage: 'Timeout: Serviço de e-mail não respondeu em tempo hábil.'
-                    });
-                }
-                
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
-                    field: 'E-mail',
-                    details: [],
-                    customMessage: 'Erro ao enviar e-mail de recuperação de senha.'
-                });
-            }
-        };
-
-        console.log('Antes de sendMail');
-        await sendMail(emailData);
-        console.log('Depois de sendMail');
-
-        console.log('Enviando e-mail de recuperação de senha');
-
-        // ───────────────────────────────────────────────
-        // Passo 5 – Retornar resposta ao cliente
-        // ───────────────────────────────────────────────
+        // Nota: O envio de e-mail foi removido. 
+        // O token pode ser usado diretamente ou você pode implementar 
+        // um novo serviço de notificação conforme necessário.
+        console.log('Token de recuperação gerado:', tokenUnico);
+        
         return {
-            message:
-                'Solicitação de recuperação de senha recebida. Um e-mail foi enviado com instruções.'
+            message: 'Solicitação de recuperação de senha recebida.',
+            token: tokenUnico // Retornando o token para testes/desenvolvimento
         };
     }
 

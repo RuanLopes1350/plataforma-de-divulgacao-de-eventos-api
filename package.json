@@ -8,7 +8,9 @@
   "type": "module",
   "scripts": {
     "dev": "docker compose -f docker-compose.dev.yml up --build",
+    "dev:local": "npx nodemon server.js",
     "seed": "docker exec -it eventos-api node src/seeds/seeds.js",
+    "seed:local": "node src/seeds/seeds.js",
     "test": "jest --coverage --detectOpenHandles",
     "start": "node server.js",
     "docker": "docker compose -f docker-compose.yml up --build -d"
@@ -34,7 +36,6 @@
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",
     "multer": "^2.0.0",
-    "nodemailer": "^7.0.3",
     "primeiraapi": "file:",
     "qrcode": "^1.5.4",
     "sharp": "^0.34.4",
