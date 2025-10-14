@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import EventoService from '../services/EventoService.js';
+import EventoRepository from '../repositories/EventoRepository.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
 import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
@@ -20,6 +21,7 @@ import {
 class EventoController {
     constructor() {
         this.service = new EventoService();
+        this.repository = new EventoRepository();
     }
 
     // POST /eventos
