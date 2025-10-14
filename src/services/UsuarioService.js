@@ -6,6 +6,7 @@ import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
 import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
+import { enviarEmail } from "../utils/mailClient.js";
 
 class UsuarioService {
     constructor() {
@@ -26,6 +27,26 @@ class UsuarioService {
         };
 
         const data = await this.repository.cadastrar(dadosSeguros);
+
+        const emailData = {
+            nome: data.nome,
+            logoUrl: "https://i.imgur.com/pHjP2qy.png",
+            mensagem: "Bem-vindo ao IFRO Events! Estamos felizes em tê-lo conosco.",
+            mostrarBotao: true,
+            textoBotao: "Começar",
+            urlBotao: `${process.env.FRONTEND_URL}/login`
+        }
+
+        const emailDeBoasVindas = {
+            to: data.email,
+            subject: "Bem-vindo ao IFRO Events!",
+            template: "bemvindo",
+            data: emailData
+        }
+
+        
+        await enviarEmail(emailDeBoasVindas);
+        
         return data;
     }
 
@@ -36,12 +57,12 @@ class UsuarioService {
             const data = await this.repository.listarPorId(req);
             return data;
         }
-        
+
         // Caso contrário, é um objeto request e queremos listar todos
         const data = await this.repository.listar();
         return data;
     }
-    
+
     /**
      * Atualiza um usuário existente.
      * Atenção: É proibido alterar o email. No serviço o objeto sempre chegará sem, pois o controller impedirá.
@@ -63,7 +84,7 @@ class UsuarioService {
         const data = await this.repository.alterar(id, parsedData);
         return data;
     }
- 
+
     /**
      * Atualiza a senha de um usuário
      *
@@ -79,7 +100,7 @@ class UsuarioService {
                 field: 'tokenRecuperacao / codigo_recupera_senha',
                 details: [],
                 customMessage:
-                'Informe o token de recuperação ou o código de recuperação.',
+                    'Informe o token de recuperação ou o código de recuperação.',
             });
         }
 
@@ -121,7 +142,7 @@ class UsuarioService {
                     customMessage: 'Código de recuperação expirado.',
                 });
             }
-            
+
             usuarioId = usuario._id.toString();
         }
 
