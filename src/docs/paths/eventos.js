@@ -168,9 +168,16 @@ const eventosPath = {
       - Sem autenticação: apenas eventos ativos
       - Com autenticação: eventos próprios + compartilhados
       - Paginação: 10 itens/página (máx. 100)
+      - Ordenação padrão: mais recentes primeiro (-createdAt)
       
       **Filtros Disponíveis:**
-      - titulo, local, categoria, tags, status, dataInicio/dataFim`,
+      - titulo, local, categoria, tags, status, dataInicio/dataFim
+      
+      **Ordenação:**
+      - createdAt: Mais antigos primeiro
+      - -createdAt: Mais recentes primeiro (padrão)
+      - dataInicio: Eventos mais próximos primeiro
+      - -dataInicio: Eventos mais distantes primeiro`,
       "parameters": [
         {
           "name": "titulo",
@@ -271,6 +278,35 @@ const eventosPath = {
             "maximum": 100,
             "default": 10
           }
+        },
+        {
+          "name": "ordenarPor",
+          "in": "query",
+          "description": "Campo para ordenação dos resultados. Use '-' no início para ordem decrescente (padrão: -createdAt)",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "enum": ["createdAt", "-createdAt", "dataInicio", "-dataInicio"],
+            "default": "-createdAt"
+          },
+          "examples": {
+            "maisRecentes": {
+              "value": "-createdAt",
+              "summary": "Mais recentes primeiro (padrão)"
+            },
+            "maisAntigos": {
+              "value": "createdAt",
+              "summary": "Mais antigos primeiro"
+            },
+            "proximosEventos": {
+              "value": "dataInicio",
+              "summary": "Eventos mais próximos primeiro"
+            },
+            "eventosDistantes": {
+              "value": "-dataInicio",
+              "summary": "Eventos mais distantes primeiro"
+            }
+          }
         }
       ],
       "responses": {
@@ -350,6 +386,88 @@ const eventosPath = {
                         "currentPage": 1,
                         "totalPages": 3,
                         "totalItems": 25,
+                        "itemsPerPage": 10
+                      }
+                    }
+                  }
+                },
+                "ordenacaoRecentes": {
+                  "summary": "Eventos ordenados por data de criação (mais recentes primeiro)",
+                  "description": "Use ?ordenarPor=-createdAt para obter eventos mais recentes primeiro (padrão)",
+                  "value": {
+                    "error": false,
+                    "code": 200,
+                    "message": "Eventos recuperados com sucesso",
+                    "data": {
+                      "eventos": [
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                          "titulo": "Workshop de IA - 2025",
+                          "descricao": "Último evento cadastrado",
+                          "dataInicio": "2025-11-15T10:00:00.000Z",
+                          "dataFim": "2025-11-15T18:00:00.000Z",
+                          "eventoCriadoEm": "2025-10-15T12:00:00.000Z",
+                          "local": "Sala 101",
+                          "categoria": "Tecnologia",
+                          "status": 1
+                        },
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f7",
+                          "titulo": "Palestra sobre Blockchain",
+                          "descricao": "Penúltimo evento cadastrado",
+                          "dataInicio": "2025-11-10T14:00:00.000Z",
+                          "dataFim": "2025-11-10T16:00:00.000Z",
+                          "eventoCriadoEm": "2025-10-14T10:00:00.000Z",
+                          "local": "Auditório",
+                          "categoria": "Tecnologia",
+                          "status": 1
+                        }
+                      ],
+                      "pagination": {
+                        "currentPage": 1,
+                        "totalPages": 5,
+                        "totalItems": 47,
+                        "itemsPerPage": 10
+                      }
+                    }
+                  }
+                },
+                "ordenacaoProximosEventos": {
+                  "summary": "Eventos ordenados por data de início (próximos primeiro)",
+                  "description": "Use ?ordenarPor=dataInicio para obter eventos que acontecerão em breve",
+                  "value": {
+                    "error": false,
+                    "code": 200,
+                    "message": "Eventos recuperados com sucesso",
+                    "data": {
+                      "eventos": [
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f9",
+                          "titulo": "Evento Amanhã",
+                          "descricao": "Evento que acontecerá em breve",
+                          "dataInicio": "2025-10-16T09:00:00.000Z",
+                          "dataFim": "2025-10-16T17:00:00.000Z",
+                          "eventoCriadoEm": "2025-09-10T10:00:00.000Z",
+                          "local": "Campus Principal",
+                          "categoria": "Educação",
+                          "status": 1
+                        },
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                          "titulo": "Workshop de IA - 2025",
+                          "descricao": "Evento em novembro",
+                          "dataInicio": "2025-11-15T10:00:00.000Z",
+                          "dataFim": "2025-11-15T18:00:00.000Z",
+                          "eventoCriadoEm": "2025-10-15T12:00:00.000Z",
+                          "local": "Sala 101",
+                          "categoria": "Tecnologia",
+                          "status": 1
+                        }
+                      ],
+                      "pagination": {
+                        "currentPage": 1,
+                        "totalPages": 5,
+                        "totalItems": 47,
                         "itemsPerPage": 10
                       }
                     }
