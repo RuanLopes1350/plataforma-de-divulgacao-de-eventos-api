@@ -7,23 +7,30 @@ const eventosPath = {
     "post": {
       "tags": ["Eventos"],
       "summary": "Cadastrar novo evento",
-      "description": `**ROTA PROTEGIDA** - Cria um novo evento básico sem mídias. Para adicionar mídias, use as rotas de upload específicas após criar o evento.
+      "description": `**ROTA PROTEGIDA** - Cria um novo evento com todas as suas configurações de exibição para o totem.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
       - Evento é automaticamente vinculado ao organizador autenticado
-      - Status inicial é sempre 'inativo'
-      - Mídias devem ser adicionadas separadamente após criação
-      - Tags devem ser array de strings (mínimo 1 tag)
-      - dataEvento deve ser no formato ISO 8601
+      - Status padrão é 'inativo' (0) se não especificado
+      - Mídias podem ser enviadas no cadastro ou adicionadas posteriormente
+      - Tags devem ser array de strings (obrigatório)
+      - Datas devem ser no formato ISO 8601
+      - Configurações de exibição (exibDia, exibManha, exibTarde, exibNoite, exibInicio, exibFim) são obrigatórias
       
-      **Fluxo Recomendado:**
-      1. Criar evento (esta rota)
-      2. Adicionar mídias com POST /eventos/{id}/midia/{tipo}
+      **Campos Obrigatórios:**
+      - titulo, descricao, local (strings)
+      - dataInicio, dataFim (datas do evento)
+      - exibInicio, exibFim (período de exibição no totem)
+      - exibDia (dias da semana: "segunda,terca,quarta,quinta,sexta,sabado,domingo")
+      - exibManha, exibTarde, exibNoite (booleanos - período do dia)
+      - categoria (string do enum)
+      - tags (array de strings)
       
-      **IMPORTANTE - Tags:**
-      - Tags é campo OBRIGATÓRIO - mínimo 1 tag necessária
-      - Deve ser enviado como array de strings: ["tecnologia", "inovação", "palestras"]`,
+      **IMPORTANTE - Configurações de Exibição:**
+      - exibDia: Define em quais dias da semana o evento aparecerá no totem
+      - exibManha/Tarde/Noite: Define em quais períodos do dia o evento será exibido
+      - exibInicio/exibFim: Define o período total em que o evento estará visível no totem`,
       "security": [
         {
           "bearerAuth": []
@@ -55,22 +62,29 @@ const eventosPath = {
                       "_id": "60b5f8c8d8f8f8f8f8f8f8",
                       "titulo": "Workshop de Node.js",
                       "descricao": "Aprenda Node.js do zero ao avançado",
-                      "dataEvento": "2024-01-15T10:00:00.000Z",
+                      "dataInicio": "2025-08-15T10:00:00.000Z",
+                      "dataFim": "2025-08-15T18:00:00.000Z",
                       "local": "Centro de Convenções",
-                      "linkInscricao": "https://exemplo.com/inscricao",
-                      "categoria": "Tecnologia",
+                      "exibDia": "segunda,terca,quarta,quinta,sexta",
+                      "exibManha": true,
+                      "exibTarde": true,
+                      "exibNoite": false,
+                      "exibInicio": "2025-08-10T00:00:00.000Z",
+                      "exibFim": "2025-08-20T23:59:59.000Z",
+                      "link": "https://exemplo.com/inscricao",
+                      "categoria": "workshop",
                       "tags": ["tecnologia", "workshop", "nodejs"],
+                      "cor": 0,
+                      "animacao": 0,
                       "organizador": {
                         "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
                         "nome": "João Silva"
                       },
-                      "status": "inativo",
-                      "midiaVideo": [],
-                      "midiaCapa": [],
-                      "midiaCarrossel": [],
+                      "status": 0,
+                      "midia": [],
                       "permissoes": [],
-                      "createdAt": "2024-01-01T12:00:00.000Z",
-                      "updatedAt": "2024-01-01T12:00:00.000Z"
+                      "createdAt": "2025-08-01T12:00:00.000Z",
+                      "updatedAt": "2025-08-01T12:00:00.000Z"
                     }
                   }
                 }

@@ -32,9 +32,42 @@ const eventosSchemas = {
         description: "Data e hora de fim do evento",
         example: "2025-08-15T18:00:00.000Z"
       },
+      exibDia: {
+        type: "string",
+        description: "Dias da semana em que o evento será exibido (separados por vírgula)",
+        example: "segunda,terca,quarta,quinta,sexta",
+        enum: ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo,segunda", "segunda,terca", "terca,quarta", "quarta,quinta", "quinta,sexta", "sexta,sabado", "sabado,domingo", "segunda,terca,quarta", "terca,quarta,quinta", "quarta,quinta,sexta", "quinta,sexta,sabado", "segunda,terca,quarta,quinta,sexta", "segunda,terca,quarta,quinta,sexta,sabado", "domingo,segunda,terca,quarta,quinta,sexta,sabado"]
+      },
+      exibManha: {
+        type: "boolean",
+        description: "Se o evento será exibido pela manhã",
+        example: true
+      },
+      exibTarde: {
+        type: "boolean",
+        description: "Se o evento será exibido pela tarde",
+        example: true
+      },
+      exibNoite: {
+        type: "boolean",
+        description: "Se o evento será exibido pela noite",
+        example: false
+      },
+      exibInicio: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de início da exibição do evento no totem",
+        example: "2025-08-10T00:00:00.000Z"
+      },
+      exibFim: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de fim da exibição do evento no totem",
+        example: "2025-08-20T23:59:59.000Z"
+      },
       link: {
         type: "string",
-        description: "Link para inscrição no evento",
+        description: "Link para inscrição ou mais informações do evento",
         example: "https://exemplo.com/inscricao"
       },
       categoria: {
@@ -53,27 +86,29 @@ const eventosSchemas = {
         items: {
           type: "string"
         },
-        description: "Tags do evento (array de strings obrigatório - mínimo 1 tag)",
-        example: ["tecnologia", "inovação", "palestras"],
-        minItems: 1
+        description: "Tags do evento (array de strings obrigatório)",
+        example: ["tecnologia", "inovação", "palestras"]
       },
       cor: {
         type: "integer",
         minimum: 0,
-        description: "Código numérico da cor do evento",
-        example: 3
+        description: "Código numérico da cor do evento (padrão: 0)",
+        example: 3,
+        default: 0
       },
       animacao: {
         type: "integer",
         minimum: 0,
-        description: "Código numérico da animação do evento",
-        example: 1
+        description: "Código numérico da animação do evento (padrão: 0)",
+        example: 1,
+        default: 0
       },
       status: {
         type: "integer",
         enum: [0, 1],
-        description: "Status do evento (0 = inativo, 1 = ativo)",
-        example: 1
+        description: "Status do evento (0 = inativo, 1 = ativo) (padrão: 0)",
+        example: 1,
+        default: 0
       },
       midia: {
         type: "array",
@@ -82,21 +117,23 @@ const eventosSchemas = {
           properties: {
             midiTipo: {
               type: "string",
-              description: "Tipo da mídia",
-              example: "capa"
+              description: "Tipo da mídia (capa, video, carrossel)",
+              example: "capa",
+              enum: ["capa", "video", "carrossel"]
             },
             midiLink: {
               type: "string",
-              description: "Link da mídia",
+              description: "Link/caminho da mídia",
               example: "/uploads/eventos/507f1f77bcf86cd799439011/capa.jpg"
             }
-          }
+          },
+          required: ["midiTipo", "midiLink"]
         },
-        description: "Mídias do evento",
+        description: "Mídias do evento (array de objetos)",
         example: []
       }
     },
-    required: ["titulo", "descricao", "local", "dataInicio", "dataFim", "categoria", "tags"]
+    required: ["titulo", "descricao", "local", "dataInicio", "dataFim", "exibDia", "exibManha", "exibTarde", "exibNoite", "exibInicio", "exibFim", "categoria", "tags"]
   },
   EventoDetalhes: {
     type: "object",
@@ -133,6 +170,38 @@ const eventosSchemas = {
         description: "Data e hora de fim do evento",
         example: "2025-08-15T18:00:00.000Z"
       },
+      exibDia: {
+        type: "string",
+        description: "Dias da semana em que o evento será exibido (separados por vírgula)",
+        example: "segunda,terca,quarta,quinta,sexta"
+      },
+      exibManha: {
+        type: "boolean",
+        description: "Se o evento será exibido pela manhã",
+        example: true
+      },
+      exibTarde: {
+        type: "boolean",
+        description: "Se o evento será exibido pela tarde",
+        example: true
+      },
+      exibNoite: {
+        type: "boolean",
+        description: "Se o evento será exibido pela noite",
+        example: false
+      },
+      exibInicio: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de início da exibição do evento no totem",
+        example: "2025-08-10T00:00:00.000Z"
+      },
+      exibFim: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de fim da exibição do evento no totem",
+        example: "2025-08-20T23:59:59.000Z"
+      },
       organizador: {
         type: "object",
         properties: {
@@ -150,7 +219,7 @@ const eventosSchemas = {
       },
       link: {
         type: "string",
-        description: "Link para inscrição no evento",
+        description: "Link para inscrição ou mais informações do evento",
         example: "https://exemplo.com/inscricao"
       },
       categoria: {
@@ -197,12 +266,13 @@ const eventosSchemas = {
           properties: {
             midiTipo: {
               type: "string",
-              description: "Tipo da mídia",
-              example: "capa"
+              description: "Tipo da mídia (capa, video, carrossel)",
+              example: "capa",
+              enum: ["capa", "video", "carrossel"]
             },
             midiLink: {
               type: "string",
-              description: "Link da mídia",
+              description: "Link/caminho da mídia",
               example: "/uploads/eventos/507f1f77bcf86cd799439011/capa.jpg"
             }
           }
@@ -281,9 +351,41 @@ const eventosSchemas = {
         description: "Data e hora de fim do evento",
         example: "2025-08-20T18:00:00.000Z"
       },
+      exibDia: {
+        type: "string",
+        description: "Dias da semana em que o evento será exibido (separados por vírgula)",
+        example: "segunda,terca,quarta,quinta,sexta,sabado"
+      },
+      exibManha: {
+        type: "boolean",
+        description: "Se o evento será exibido pela manhã",
+        example: true
+      },
+      exibTarde: {
+        type: "boolean",
+        description: "Se o evento será exibido pela tarde",
+        example: true
+      },
+      exibNoite: {
+        type: "boolean",
+        description: "Se o evento será exibido pela noite",
+        example: true
+      },
+      exibInicio: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de início da exibição do evento no totem",
+        example: "2025-08-15T00:00:00.000Z"
+      },
+      exibFim: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora de fim da exibição do evento no totem",
+        example: "2025-08-25T23:59:59.000Z"
+      },
       link: {
         type: "string",
-        description: "Link para inscrição no evento",
+        description: "Link para inscrição ou mais informações do evento",
         example: "https://exemplo.com/nova-inscricao"
       },
       categoria: {
@@ -330,15 +432,17 @@ const eventosSchemas = {
           properties: {
             midiTipo: {
               type: "string",
-              description: "Tipo da mídia",
-              example: "capa"
+              description: "Tipo da mídia (capa, video, carrossel)",
+              example: "capa",
+              enum: ["capa", "video", "carrossel"]
             },
             midiLink: {
               type: "string",
-              description: "Link da mídia",
+              description: "Link/caminho da mídia",
               example: "/uploads/eventos/507f1f77bcf86cd799439011/nova-capa.jpg"
             }
-          }
+          },
+          required: ["midiTipo", "midiLink"]
         },
         description: "Mídias do evento",
         example: []

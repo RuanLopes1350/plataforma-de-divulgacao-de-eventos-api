@@ -56,6 +56,32 @@ const EventoSchema = z.object({
         dataFim: z.coerce.date({
             required_error: 'Campo dataFim é obrigatório'
         }),
+        exibDia: z.string().min(1, 'Campo exibDia é obrigatório')
+            .refine((val) => {
+                const diasValidos = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+                const dias = val.split(',').map(d => d.trim());
+                return dias.every(dia => diasValidos.includes(dia));
+            }, {
+                message: 'exibDia deve conter dias válidos separados por vírgula (domingo, segunda, terca, quarta, quinta, sexta, sabado)'
+            }),
+        exibManha: z.boolean({
+            required_error: 'Campo exibManha é obrigatório',
+            invalid_type_error: 'exibManha deve ser um booleano (true ou false)'
+        }),
+        exibTarde: z.boolean({
+            required_error: 'Campo exibTarde é obrigatório',
+            invalid_type_error: 'exibTarde deve ser um booleano (true ou false)'
+        }),
+        exibNoite: z.boolean({
+            required_error: 'Campo exibNoite é obrigatório',
+            invalid_type_error: 'exibNoite deve ser um booleano (true ou false)'
+        }),
+        exibInicio: z.coerce.date({
+            required_error: 'Campo exibInicio é obrigatório'
+        }),
+        exibFim: z.coerce.date({
+            required_error: 'Campo exibFim é obrigatório'
+        }),
         link: z.string()
             .optional()
             .refine((v) => v === undefined || v === '' || URL_REGEX.test(v), {
@@ -125,6 +151,25 @@ const EventoSchema = z.object({
     }, {
         message: 'dataFim deve ser igual ou posterior a dataInicio',
         path: ['dataFim']
+    })
+    .refine((data) => {
+        // Validação: exibFim deve ser igual ou posterior a exibInicio
+        if (data.exibInicio && data.exibFim) {
+            const inicio = new Date(data.exibInicio).getTime();
+            const fim = new Date(data.exibFim).getTime();
+            return fim >= inicio;
+        }
+        return true;
+    }, {
+        message: 'exibFim deve ser igual ou posterior a exibInicio',
+        path: ['exibFim']
+    })
+    .refine((data) => {
+        // Validação: pelo menos um período do dia deve estar selecionado
+        return data.exibManha || data.exibTarde || data.exibNoite;
+    }, {
+        message: 'Pelo menos um período de exibição deve ser selecionado (manhã, tarde ou noite)',
+        path: ['exibManha']
     });
 
 // Schema para atualizações (todos os campos opcionais exceto organizador)
@@ -134,6 +179,25 @@ const EventoUpdateSchema = z.object({
     local: z.string().min(1, 'Campo local é obrigatório').optional(),
     dataInicio: z.coerce.date().optional(),
     dataFim: z.coerce.date().optional(),
+    exibDia: z.string().min(1, 'Campo exibDia é obrigatório')
+        .refine((val) => {
+            const diasValidos = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+            const dias = val.split(',').map(d => d.trim());
+            return dias.every(dia => diasValidos.includes(dia));
+        }, {
+            message: 'exibDia deve conter dias válidos separados por vírgula (domingo, segunda, terca, quarta, quinta, sexta, sabado)'
+        }).optional(),
+    exibManha: z.boolean({
+        invalid_type_error: 'exibManha deve ser um booleano (true ou false)'
+    }).optional(),
+    exibTarde: z.boolean({
+        invalid_type_error: 'exibTarde deve ser um booleano (true ou false)'
+    }).optional(),
+    exibNoite: z.boolean({
+        invalid_type_error: 'exibNoite deve ser um booleano (true ou false)'
+    }).optional(),
+    exibInicio: z.coerce.date().optional(),
+    exibFim: z.coerce.date().optional(),
     link: z.string()
         .optional()
         .refine((v) => v === undefined || v === '' || URL_REGEX.test(v), {
@@ -158,6 +222,14 @@ const EventoUpdateSchema = z.object({
 }, {
     message: 'dataFim deve ser igual ou posterior a dataInicio',
     path: ['dataFim']
+}).refine((data) => {
+    if (data.exibInicio && data.exibFim) {
+        return new Date(data.exibFim).getTime() >= new Date(data.exibInicio).getTime();
+    }
+    return true;
+}, {
+    message: 'exibFim deve ser igual ou posterior a exibInicio',
+    path: ['exibFim']
 });
 
 export {

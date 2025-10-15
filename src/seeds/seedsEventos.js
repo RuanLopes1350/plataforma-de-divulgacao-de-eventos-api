@@ -103,13 +103,15 @@ async function seedEventos(usuarios) {
     await Evento.collection.insertMany(eventosFixos);
     console.log(`${eventosFixos.length} Eventos fixos inseridos com sucesso!`);
 
-    const mapping = await globalFakeMapping();
+    const mapping = await getGlobalFakeMapping();
 
     const eventosAleatorios = [];
 
     for(let i = 0; i < 20; i++) {
         const dataInicio = mapping.dataInicio();
         const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // +2h
+
+        const midiaArr = mapping.midia ? mapping.midia() : [];
 
         eventosAleatorios.push({
             titulo: mapping.titulo(),
@@ -127,8 +129,8 @@ async function seedEventos(usuarios) {
                 _id: usuarios[i % usuarios.length]._id,
                 nome: usuarios[i % usuarios.length].nome
             },
-            link: mapping.linkInscricao ? mapping.linkInscricao() : mapping.link || '',
-            tags: Array.isArray(mapping.tags) ? mapping.tags() .join(',') : (mapping.tags ? mapping.tags() : ''),
+            link: mapping.linkInscricao ? mapping.linkInscricao() : (mapping.link ? mapping.link() : ''),
+            tags: Array.isArray(mapping.tags) ? mapping.tags().join(',') : (mapping.tags ? mapping.tags() : ''),
             categoria: mapping.categoria ? mapping.categoria() : 'institucional',
             cor: 0,
             animacao: 0,
