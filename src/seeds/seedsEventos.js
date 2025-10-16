@@ -135,7 +135,7 @@ async function seedEventos(usuarios) {
             cor: 0,
             animacao: 0,
             status: toStatusNumber(mapping.status ? mapping.status() : 'inativo'),
-            midia: midiaArr,
+            midia: mapping.midia,
             permissoes: mapping.permissoes ? mapping.permissoes() : [],
         });
     };

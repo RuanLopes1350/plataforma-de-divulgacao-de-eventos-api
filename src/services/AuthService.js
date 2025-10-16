@@ -9,6 +9,7 @@ import TokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
 
 import UsuarioRepository from '../repositories/UsuarioRepository.js';
+import { enviarEmail } from '../utils/mailClient.js';
 
 class AuthService {
     constructor({ tokenUtil: injectedTokenUtil } = {}) {
@@ -147,8 +148,22 @@ class AuthService {
         // ───────────────────────────────────────────────
         // Passo 4 – Retornar resposta ao cliente
         // ───────────────────────────────────────────────
-        // Nota: O envio de e-mail foi removido. 
-        // O token pode ser usado diretamente ou você pode implementar 
+        
+        //enviar email com o link de recuperação (com o token único na query string)
+        // Exemplo de link: https://meusite.com/recover-password?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+        // let email = {
+        //     to = 
+        //     subject =
+        //     template =
+        //     data = {
+
+        //     }
+        // }
+
+        enviarEmail()
+        
+
         // um novo serviço de notificação conforme necessário.
         console.log('Token de recuperação gerado:', tokenUnico);
         
