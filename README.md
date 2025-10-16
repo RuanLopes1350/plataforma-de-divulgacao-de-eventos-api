@@ -2,7 +2,7 @@
 
 Back-end da plataforma **IFRO Events**, desenvolvida para gerenciamento e divulgação de eventos institucionais, com autenticação, permissões de edição, upload de mídias, exibição por totem, geração de QR Code e muito mais.
 
-## 📋 Índice
+## 📋 Índice 
 
 - [Funcionalidades](#-funcionalidades)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
