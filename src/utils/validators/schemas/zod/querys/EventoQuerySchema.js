@@ -93,5 +93,14 @@ export const EventoQuerySchema = z.object({
     .transform((val) => (val ? parseInt(val, 10) : 10))
     .refine((val) => Number.isInteger(val) && val > 0 && val <= 100, {
       message: "Limite deve ser um número inteiro entre 1 e 100",
-    })
+    }),
+
+  // Campo para ordenação
+  ordenarPor: z
+    .string()
+    .optional()
+    .refine(
+      (value) => !value || ["createdAt", "-createdAt", "dataInicio", "-dataInicio"].includes(value),
+      { message: "ordenarPor deve ser 'createdAt', '-createdAt', 'dataInicio' ou '-dataInicio'" }
+    )
 });

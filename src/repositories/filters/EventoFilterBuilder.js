@@ -10,6 +10,7 @@ import UsuarioRepository from '../UsuarioRepository.js';
 class EventoFilterBuilder {
     constructor() {
         this.filtros = {};
+        this.ordenacao = { createdAt: -1 }; // Padrão: mais recentes primeiro
         this.eventoRepository = new EventoRepository();
         this.usuarioRepository = new UsuarioRepository();
         this.eventoModel = EventoModel;
@@ -140,12 +141,31 @@ class EventoFilterBuilder {
         return this;
     }
 
+    comOrdenacao(ordenarPor) {
+        if (ordenarPor) {
+            if (ordenarPor === 'createdAt') {
+                this.ordenacao = { createdAt: 1 }; // Mais antigos primeiro
+            } else if (ordenarPor === '-createdAt') {
+                this.ordenacao = { createdAt: -1 }; // Mais recentes primeiro
+            } else if (ordenarPor === 'dataInicio') {
+                this.ordenacao = { dataInicio: 1 }; // Data de início mais próxima primeiro
+            } else if (ordenarPor === '-dataInicio') {
+                this.ordenacao = { dataInicio: -1 }; // Data de início mais distante primeiro
+            }
+        }
+        return this;
+    }
+
     escapeRegex(texto) {
         return texto.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     }
 
     build() {
         return this.filtros;
+    }
+
+    getOrdenacao() {
+        return this.ordenacao;
     }
 }
 

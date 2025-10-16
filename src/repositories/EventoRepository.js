@@ -52,7 +52,8 @@ class EventoRepository {
             page = 1,
             limite = 10,
             organizadorId,
-            ignorarFiltroStatusPadrao = false
+            ignorarFiltroStatusPadrao = false,
+            ordenarPor
         } = req.query;
 
         // Normalizar tags: aceitar tanto string CSV quanto array
@@ -71,7 +72,8 @@ class EventoRepository {
             .comLocal(local)
             .comCategoria(categoria)
             .comStatus(status)
-            .comTags(tagsToFilter);
+            .comTags(tagsToFilter)
+            .comOrdenacao(ordenarPor);
 
         const usuarioId = req.user?._id || organizadorId;
 
@@ -101,11 +103,12 @@ class EventoRepository {
         }
 
         const filtros = filterBuilder.build();
+        const sortConfig = filterBuilder.getOrdenacao();
 
         const options = {
             page: parseInt(page),
             limit: parseInt(itemsPorPagina),
-            sort: { eventoCriadoEm: -1 },
+            sort: sortConfig,
             lean: false
         };
 

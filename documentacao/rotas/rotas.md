@@ -70,6 +70,23 @@ Listar todos os eventos.
 - **Totem:** lista eventos passados, atuais e futuros com dados visuais apenas.
 - **Painel:** lista todos os eventos com detalhes administrativos.
 
+#### Parâmetros de Query Opcionais
+- `titulo`: Filtrar por título (busca parcial)
+- `local`: Filtrar por local (busca parcial)
+- `categoria`: Filtrar por categoria (busca parcial)
+- `tags`: Filtrar por tags (busca parcial)
+- `status`: Filtrar por status (0 = inativo, 1 = ativo)
+- `tipo`: Filtrar por tipo (historico, futuro, ativo)
+- `dataInicio`: Filtrar eventos a partir de uma data
+- `dataFim`: Filtrar eventos até uma data
+- `page`: Número da página (padrão: 1)
+- `limite`: Quantidade de resultados por página (padrão: 10, máximo: 100)
+- `ordenarPor`: Ordenação dos resultados
+  - `createdAt`: Mais antigos primeiro
+  - `-createdAt`: Mais recentes primeiro (padrão)
+  - `dataInicio`: Por data de início (crescente)
+  - `-dataInicio`: Por data de início (decrescente)
+
 #### Resultado
 - Array de eventos com dados filtrados por origem (painel ou totem).
 - Em caso de falha, retornar mensagem de erro.
