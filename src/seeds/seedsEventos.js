@@ -111,6 +111,8 @@ async function seedEventos(usuarios) {
         const dataInicio = mapping.dataInicio();
         const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // +2h
 
+        const midiaArr = mapping.midia ? mapping.midia() : [];
+
         eventosAleatorios.push({
             titulo: mapping.titulo(),
             descricao: mapping.descricao(),
@@ -127,8 +129,8 @@ async function seedEventos(usuarios) {
                 _id: usuarios[i % usuarios.length]._id,
                 nome: usuarios[i % usuarios.length].nome
             },
-            link: mapping.linkInscricao ? mapping.linkInscricao() : mapping.link || '',
-            tags: Array.isArray(mapping.tags) ? mapping.tags() .join(',') : (mapping.tags ? mapping.tags() : ''),
+            link: mapping.linkInscricao ? mapping.linkInscricao() : (mapping.link ? mapping.link() : ''),
+            tags: Array.isArray(mapping.tags) ? mapping.tags().join(',') : (mapping.tags ? mapping.tags() : ''),
             categoria: mapping.categoria ? mapping.categoria() : 'institucional',
             cor: 0,
             animacao: 0,
