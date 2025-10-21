@@ -7,5 +7,5 @@ const host = '0.0.0.0';
 
 //Mensagem com o link do servidor//
 app.listen(port, host, () => {
-    console.log(`Servidor escutando em http://${host}:${port}`);
+    console.log(`Servidor escutando em http://localhost:${port}`);
 });
