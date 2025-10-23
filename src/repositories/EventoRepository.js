@@ -231,7 +231,10 @@ class EventoRepository {
             dataFim: 1,
             midia: 1,
             cor: 1,
-            animacao: 1
+            animacao: 1,
+            categoria: 1,
+            tags: 1,
+            link: 1
         };
 
         return await this.model.find(filtros, projection).sort({ dataInicio: 1 });

@@ -117,7 +117,6 @@ class EventoFilterBuilder {
             // Merge os filtros de data com os filtros existentes
             Object.assign(this.filtros, filtroData);
         }
-
         return this;
     }
 
