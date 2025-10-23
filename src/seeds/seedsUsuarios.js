@@ -29,6 +29,10 @@ export function gerarSenhaHash() {
   return bcrypt.hashSync('ABab@123456', 8);
 }
 
+export function gerarHashSenhaAdmin(){
+    return bcrypt.hashSync('admin', 8);
+}
+
 // ----------------------------------------------------------------------------
 // 3) SEED de Usuários
 // ----------------------------------------------------------------------------
@@ -38,6 +42,12 @@ async function seedUsuarios() {
     await Usuario.deleteMany();
 
     const usuariosFixos = [
+        {
+            nome: "Admin",
+            email: "admin@admin.com",
+            senha: gerarHashSenhaAdmin(),
+            status: "ativo"
+        },
         {
             nome: "Ruan Lopes",
             email: "intel.spec.lopes@gmail.com",
