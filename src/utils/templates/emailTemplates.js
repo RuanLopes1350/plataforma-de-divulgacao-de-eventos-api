@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
 export const emailDeBoasVindas = (data) => ({
   to: data.email,
   subject: "Bem-vindo ao IFRO Events!",
@@ -10,7 +12,7 @@ export const emailDeBoasVindas = (data) => ({
     mensagem: "Bem-vindo ao IFRO Events! Estamos felizes em tê-lo conosco.",
     mostrarBotao: true,
     textoBotao: "Começar",
-    urlBotao: `${process.env.FRONTEND_URL}/login`
+    urlBotao: `${FRONTEND_URL}/login`
   }
 });
 
@@ -31,7 +33,7 @@ export const emailRecover = (data) => ({
     textoDestaque: "Este link expira em 1 hora.",
     mostrarBotao: true,
     textoBotao: "Alterar Senha",
-    urlBotao: `${process.env.FRONTEND_URL}/recuperar_senha/${data.token}`,
+    urlBotao: `${FRONTEND_URL}/recuperar_senha/${data.token}`,
     corBotao: "#4338CA",
   },
 });
