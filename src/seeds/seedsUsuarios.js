@@ -1,17 +1,12 @@
 // /src/seeds/seedsEventos.js
 
 import "dotenv/config";
-import mongoose from "mongoose";
-import { v4 as uuid } from 'uuid';
 
 // Conexão com o banco
 import DbConnect from "../config/DbConnect.js";
 
 // Importação das Models
-import Usuario from "../models/Usuario.js";
 import Evento from "../models/Evento.js";
-
-import EventoService from "../services/EventoService.js";
 
 //Mapeador
 import getGlobalFakeMapping from "./globalFakeMapping.js";
