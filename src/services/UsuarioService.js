@@ -4,6 +4,7 @@ import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import { UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
+import {emailDeBoasVindas} from "../utils/templates/emailTemplates.js";
 import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
 import { enviarEmail } from "../utils/mailClient.js";
@@ -27,25 +28,8 @@ class UsuarioService {
         };
 
         const data = await this.repository.cadastrar(dadosSeguros);
-
-        const emailData = {
-            nome: data.nome,
-            logoUrl: "https://i.imgur.com/pHjP2qy.png",
-            mensagem: "Bem-vindo ao IFRO Events! Estamos felizes em tê-lo conosco.",
-            mostrarBotao: true,
-            textoBotao: "Começar",
-            urlBotao: `${process.env.FRONTEND_URL}/login`
-        }
-
-        const emailDeBoasVindas = {
-            to: data.email,
-            subject: "Bem-vindo ao IFRO Events!",
-            template: "bemvindo",
-            data: emailData
-        }
-
         
-        await enviarEmail(emailDeBoasVindas);
+        await enviarEmail(emailDeBoasVindas(data));
         
         return data;
     }

@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import tokenUtil from '../utils/TokenUtil.js';
+import {emailRecover} from "../utils/templates/emailTemplates.js";
 import { v4 as uuid } from 'uuid';
 import TokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
@@ -135,6 +136,8 @@ class AuthService {
             exp_tokenUnico_recuperacao: new Date(expMs)
         });
 
+        data.token = tokenUnico;
+
         if (!data) {
             // Falha ao atualizar → erro 500
             throw new CustomError({
@@ -145,23 +148,7 @@ class AuthService {
             });
         }
 
-        // ───────────────────────────────────────────────
-        // Passo 4 – Retornar resposta ao cliente
-        // ───────────────────────────────────────────────
-        
-        //enviar email com o link de recuperação (com o token único na query string)
-        // Exemplo de link: https://meusite.com/recover-password?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-        // let email = {
-        //     to = 
-        //     subject =
-        //     template =
-        //     data = {
-
-        //     }
-        // }
-
-        enviarEmail()
+        await enviarEmail(emailRecover(data))
         
 
         // um novo serviço de notificação conforme necessário.

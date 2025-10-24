@@ -3,9 +3,11 @@
 import EventoRepository from "../repositories/EventoRepository.js";
 import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
+import {emailCompartilhamentoDono, emailCompartilhamento} from "../utils/templates/emailTemplates.js";
 import { EventoQuerySchema } from "../utils/validators/schemas/zod/querys/EventoQuerySchema.js";
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
+import { CustomError, HttpStatusCodes, messages } from "../utils/helpers/index.js";
 import QRCode from 'qrcode';
+import { enviarEmail } from '../utils/mailClient.js';
 
 class EventoService {
     constructor() {
@@ -76,6 +78,7 @@ class EventoService {
         await this.ensureUserIsOwner(evento, usuarioId, true);
 
         const usuarioDestino = await this.usuarioRepository.buscarPorEmail(email);
+        const usuarioDono = await this.usuarioRepository.listarPorId(usuarioId);
 
         if (!usuarioDestino) {
             throw new CustomError({
@@ -126,7 +129,25 @@ class EventoService {
 
         await this.repository.model.updateOne(filtro, update);
 
-        return await this.repository.listarPorId(eventoId);
+        const emailDataDestino = {
+            email: usuarioDestino.email,
+            nome: usuarioDestino.nome,
+            nomeDono: usuarioDono.nome,
+            evento: evento.titulo
+        };
+
+        const emailDataDono = {
+            email: usuarioDono.email,
+            nome: usuarioDestino.nome,
+            nomeDono: usuarioDono.nome,
+            evento: evento.titulo
+        };
+
+        await enviarEmail(emailCompartilhamentoDono(emailDataDono));
+        await enviarEmail(emailCompartilhamento(emailDataDestino));
+    
+        const eventoAtualizado = await this.repository.listarPorId(eventoId);
+        return { message: 'Permissão compartilhada com sucesso.', evento: eventoAtualizado };
     }
 
     // DELETE /eventos/:id
