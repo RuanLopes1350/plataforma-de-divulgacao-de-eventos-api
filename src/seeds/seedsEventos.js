@@ -11,6 +11,8 @@ import DbConnect from "../config/DbConnect.js";
 import Usuario from "../models/Usuario.js";
 import Evento from "../models/Evento.js";
 
+import EventoService from "../services/EventoService.js";
+
 //Mapeador
 import getGlobalFakeMapping from "./globalFakeMapping.js";
 
@@ -36,6 +38,8 @@ function unifyMidias(midiaVideo = [], midiaCapa = [], midiaCarrossel = []) {
     return midias;
 }
 
+
+
 async function seedEventos(usuarios) {
     // Remove antes de criar os eventos
     await Evento.deleteMany();
@@ -52,16 +56,16 @@ async function seedEventos(usuarios) {
             exibTarde: true,
             exibNoite: true,
             exibInicio: new Date("2025-10-20T00:00:00Z"),
-            exibFim: new Date("2025-11-10T23:59:59Z"),
+            exibFim: new Date("2025-12-10T23:59:59Z"),
             organizador: {
                 _id: "placeholder-id-coordenacao-ads",
                 nome: "Coordenação de ADS"
             },
-            link: 'data:image/gif;base64,R0lGODlhZABkAJEAAAAAAP///wAAAAAAACH5BAEAAAIALAAAAABkAGQAAAL/jI+py+0Po5y02ouz3rz7D4biSJbmiabqCgLuC8fyjMDYjOf2pPf0sbP4hi8KkVgrXo5DI7OXdN2eOqd0qTT4IMFKl5v1hrePLy8MvgrH0DL6rI6YJV2yYy5/39lVoD6AEwUgKBjoF5c2eJhDuGCoxacI2TcpmRdnB/j3qIkZyYnHUNdWKfpTulh42mmZqCrTiKqAN0rJamWZWdua6vi5GurrabtrithbCfpnnEt6i5xA+wsL7bqofLyX/ZwMvCzcTPw9uzkdE3sZzljttr2LzautDo/L/HrOLj+1fV+MxQ9uX7xozoLpgzPQmjx6/xIGbJiI4RqA5KhI5IbR4jo6/xq9DVPXzyKujpHQvSPpsCLKjybNaWTB7CRFmC084qOJAp5BnB50jkshc96qkCwfdpvZktrRmwTFuTNX75rLck4HBo26lKjVglSFIpVaVFbGIwob7LyXFCTYjWZ/nl2bNm0me+1SNmXqTyyTsnQ5KsWIrmzetn8jljSaLm7dt1nzAa6reOFPtI4Zjw1LmKnhmdKecub6VeXOzls/VxU4umvfzBdHulWNOKZNgZQb650ampXlq3ChBd09FHJv25e9al482bfNwb+TE+d5MbpzmNL/DuYpG3N1u9BnDy/OYeX1tbzFokYZmDxUx65Jpl9a/vFE8e91Lz+swbLc6fsLI8Sk/R1W9vnnF3eIcSLgXP9BFOCC8PGn3GmxRYhXcPNpVR9ptQ1o4EEPYpbhes8x+KFaKq3mU24ogmZciARyCGCJ/Zl4F2n6UbjdeCPumJh62nknWlc33iYhjzrKl0FzP7545JCZYYgjbOaxRyKHzFkI3oT5QTilka951iGSfDXY5V2rjVlgdqXZpaGDYoDZpodmIrQSlCceyGWN6Pm45ooqglMnn2dSGJ54HyFYGX7YLcpoo44+Cmmkkk5KaaWWXoppCQUAADs=',
+            link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Tecnologia", "Programação", "Inovação"],
             categoria: "competição",
             cor: 1,
-            animacao: 2,
+            animacao: 1,
             status: 1,
             midia: [
                 { midiTipo: 'capa', midiLink: 'https://images.pexels.com/photos/34037760/pexels-photo-34037760.jpeg' },
@@ -79,18 +83,18 @@ async function seedEventos(usuarios) {
             exibDia: "segunda,terca,quarta,quinta,sexta",
             exibManha: true,
             exibTarde: true,
-            exibNoite: false,
+            exibNoite: true,
             exibInicio: new Date("2025-10-01T00:00:00Z"),
-            exibFim: new Date("2025-10-23T23:59:59Z"),
+            exibFim: new Date("2025-12-23T23:59:59Z"),
             organizador: {
                 _id: "placeholder-id-departamento-extensao",
                 nome: "Departamento de Extensão"
             },
-            link: "data:image/gif;base64,R0lGODlhZABkAJEAAAAAAP///wAAAAAAACH5BAEAAAIALAAAAABkAGQAAAL/jI+py+0Po5y02ouz3rz7D4biSJbmiabqCgLuC8fyjMDYjOf2pPf0sbP4hi8KkVgrXo5DI7OXdN2eOqd0qTT4IMFKl5v1hrePLy8MvgrH0DL6rI6YJV2yYy5/39lVoD6AEwUgKBjoF5c2eJhDuGCoxacI2TcpmRdnB/j3qIkZyYnHUNdWKfpTulh42mmZqCrTiKqAN0rJamWZWdua6vi5GurrabtrithbCfpnnEt6i5xA+wsL7bqofLyX/ZwMvCzcTPw9uzkdE3sZzljttr2LzautDo/L/HrOLj+1fV+MxQ9uX7xozoLpgzPQmjx6/xIGbJiI4RqA5KhI5IbR4jo6/xq9DVPXzyKujpHQvSPpsCLKjybNaWTB7CRFmC084qOJAp5BnB50jkshc96qkCwfdpvZktrRmwTFuTNX75rLck4HBo26lKjVglSFIpVaVFbGIwob7LyXFCTYjWZ/nl2bNm0me+1SNmXqTyyTsnQ5KsWIrmzetn8jljSaLm7dt1nzAa6reOFPtI4Zjw1LmKnhmdKecub6VeXOzls/VxU4umvfzBdHulWNOKZNgZQb650ampXlq3ChBd09FHJv25e9al482bfNwb+TE+d5MbpzmNL/DuYpG3N1u9BnDy/OYeX1tbzFokYZmDxUx65Jpl9a/vFE8e91Lz+swbLc6fsLI8Sk/R1W9vnnF3eIcSLgXP9BFOCC8PGn3GmxRYhXcPNpVR9ptQ1o4EEPYpbhes8x+KFaKq3mU24ogmZciARyCGCJ/Zl4F2n6UbjdeCPumJh62nknWlc33iYhjzrKl0FzP7545JCZYYgjbOaxRyKHzFkI3oT5QTilka951iGSfDXY5V2rjVlgdqXZpaGDYoDZpodmIrQSlCceyGWN6Pm45ooqglMnn2dSGJ54HyFYGX7YLcpoo44+Cmmkkk5KaaWWXoppCQUAADs=",
+            link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Ciência", "Pesquisa", "Tecnologia"],
             categoria: "exposição",
             cor: 2,
-            animacao: 1,
+            animacao: 4,
             status: 1,
             midia: [
                 { midiTipo: 'capa', midiLink: 'https://plus.unsplash.com/premium_photo-1661432575489-b0400f4fea58?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1172' },
@@ -107,16 +111,16 @@ async function seedEventos(usuarios) {
             dataInicio: new Date("2025-11-12T14:00:00Z"),
             dataFim: new Date("2025-11-12T18:00:00Z"),
             exibDia: "segunda,terca,quarta",
-            exibManha: false,
+            exibManha: true,
             exibTarde: true,
-            exibNoite: false,
+            exibNoite: true,
             exibInicio: new Date("2025-10-10T00:00:00Z"),
-            exibFim: new Date("2025-11-12T23:59:59Z"),
+            exibFim: new Date("2025-12-12T23:59:59Z"),
             organizador: {
                 _id: "placeholder-id-coordenacao-ads",
                 nome: "Coordenação de ADS"
             },
-            link: "data:image/gif;base64,R0lGODlhZABkAJEAAAAAAP///wAAAAAAACH5BAEAAAIALAAAAABkAGQAAAL/jI+py+0Po5y02ouz3rz7D4biSJbmiabqCgLuC8fyjMDYjOf2pPf0sbP4hi8KkVgrXo5DI7OXdN2eOqd0qTT4IMFKl5v1hrePLy8MvgrH0DL6rI6YJV2yYy5/39lVoD6AEwUgKBjoF5c2eJhDuGCoxacI2TcpmRdnB/j3qIkZyYnHUNdWKfpTulh42mmZqCrTiKqAN0rJamWZWdua6vi5GurrabtrithbCfpnnEt6i5xA+wsL7bqofLyX/ZwMvCzcTPw9uzkdE3sZzljttr2LzautDo/L/HrOLj+1fV+MxQ9uX7xozoLpgzPQmjx6/xIGbJiI4RqA5KhI5IbR4jo6/xq9DVPXzyKujpHQvSPpsCLKjybNaWTB7CRFmC084qOJAp5BnB50jkshc96qkCwfdpvZktrRmwTFuTNX75rLck4HBo26lKjVglSFIpVaVFbGIwob7LyXFCTYjWZ/nl2bNm0me+1SNmXqTyyTsnQ5KsWIrmzetn8jljSaLm7dt1nzAa6reOFPtI4Zjw1LmKnhmdKecub6VeXOzls/VxU4umvfzBdHulWNOKZNgZQb650ampXlq3ChBd09FHJv25e9al482bfNwb+TE+d5MbpzmNL/DuYpG3N1u9BnDy/OYeX1tbzFokYZmDxUx65Jpl9a/vFE8e91Lz+swbLc6fsLI8Sk/R1W9vnnF3eIcSLgXP9BFOCC8PGn3GmxRYhXcPNpVR9ptQ1o4EEPYpbhes8x+KFaKq3mU24ogmZciARyCGCJ/Zl4F2n6UbjdeCPumJh62nknWlc33iYhjzrKl0FzP7545JCZYYgjbOaxRyKHzFkI3oT5QTilka951iGSfDXY5V2rjVlgdqXZpaGDYoDZpodmIrQSlCceyGWN6Pm45ooqglMnn2dSGJ54HyFYGX7YLcpoo44+Cmmkkk5KaaWWXoppCQUAADs=",
+            link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Node.js", "Backend", "Programação"],
             categoria: "workshop",
             cor: 3,
@@ -136,20 +140,20 @@ async function seedEventos(usuarios) {
             dataInicio: new Date("2025-10-30T19:00:00Z"),
             dataFim: new Date("2025-10-30T21:30:00Z"),
             exibDia: "quinta,sexta",
-            exibManha: false,
-            exibTarde: false,
+            exibManha: true,
+            exibTarde: true,
             exibNoite: true,
             exibInicio: new Date("2025-10-25T00:00:00Z"),
-            exibFim: new Date("2025-10-30T23:59:59Z"),
+            exibFim: new Date("2025-12-30T23:59:59Z"),
             organizador: {
                 _id: "placeholder-id-departamento-extensao",
                 nome: "Departamento de Extensão"
             },
-            link: 'data:image/gif;base64,R0lGODlhZABkAJEAAAAAAP///wAAAAAAACH5BAEAAAIALAAAAABkAGQAAAL/jI+py+0Po5y02ouz3rz7D4biSJbmiabqCgLuC8fyjMDYjOf2pPf0sbP4hi8KkVgrXo5DI7OXdN2eOqd0qTT4IMFKl5v1hrePLy8MvgrH0DL6rI6YJV2yYy5/39lVoD6AEwUgKBjoF5c2eJhDuGCoxacI2TcpmRdnB/j3qIkZyYnHUNdWKfpTulh42mmZqCrTiKqAN0rJamWZWdua6vi5GurrabtrithbCfpnnEt6i5xA+wsL7bqofLyX/ZwMvCzcTPw9uzkdE3sZzljttr2LzautDo/L/HrOLj+1fV+MxQ9uX7xozoLpgzPQmjx6/xIGbJiI4RqA5KhI5IbR4jo6/xq9DVPXzyKujpHQvSPpsCLKjybNaWTB7CRFmC084qOJAp5BnB50jkshc96qkCwfdpvZktrRmwTFuTNX75rLck4HBo26lKjVglSFIpVaVFbGIwob7LyXFCTYjWZ/nl2bNm0me+1SNmXqTyyTsnQ5KsWIrmzetn8jljSaLm7dt1nzAa6reOFPtI4Zjw1LmKnhmdKecub6VeXOzls/VxU4umvfzBdHulWNOKZNgZQb650ampXlq3ChBd09FHJv25e9al482bfNwb+TE+d5MbpzmNL/DuYpG3N1u9BnDy/OYeX1tbzFokYZmDxUx65Jpl9a/vFE8e91Lz+swbLc6fsLI8Sk/R1W9vnnF3eIcSLgXP9BFOCC8PGn3GmxRYhXcPNpVR9ptQ1o4EEPYpbhes8x+KFaKq3mU24ogmZciARyCGCJ/Zl4F2n6UbjdeCPumJh62nknWlc33iYhjzrKl0FzP7545JCZYYgjbOaxRyKHzFkI3oT5QTilka951iGSfDXY5V2rjVlgdqXZpaGDYoDZpodmIrQSlCceyGWN6Pm45ooqglMnn2dSGJ54HyFYGX7YLcpoo44+Cmmkkk5KaaWWXoppCQUAADs=',
+            link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Carreira", "Mercado de Trabalho", "TI"],
             categoria: "palestra",
             cor: 4,
-            animacao: 4,
+            animacao: 7,
             status: 1,
             midia: [
                 { midiTipo: 'capa', midiLink: 'https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' },
@@ -167,18 +171,18 @@ async function seedEventos(usuarios) {
             exibDia: "segunda,terca,quarta,quinta,sexta,sabado",
             exibManha: true,
             exibTarde: true,
-            exibNoite: false,
+            exibNoite: true,
             exibInicio: new Date("2025-09-15T00:00:00Z"),
-            exibFim: new Date("2025-10-27T23:59:59Z"),
+            exibFim: new Date("2025-12-27T23:59:59Z"),
             organizador: {
                 _id: "placeholder-id-gremio-estudantil",
                 nome: "Grêmio Estudantil"
             },
-            link: 'data:image/gif;base64,R0lGODlhZABkAJEAAAAAAP///wAAAAAAACH5BAEAAAIALAAAAABkAGQAAAL/jI+py+0Po5y02ouz3rz7D4biSJbmiabqCgLuC8fyjMDYjOf2pPf0sbP4hi8KkVgrXo5DI7OXdN2eOqd0qTT4IMFKl5v1hrePLy8MvgrH0DL6rI6YJV2yYy5/39lVoD6AEwUgKBjoF5c2eJhDuGCoxacI2TcpmRdnB/j3qIkZyYnHUNdWKfpTulh42mmZqCrTiKqAN0rJamWZWdua6vi5GurrabtrithbCfpnnEt6i5xA+wsL7bqofLyX/ZwMvCzcTPw9uzkdE3sZzljttr2LzautDo/L/HrOLj+1fV+MxQ9uX7xozoLpgzPQmjx6/xIGbJiI4RqA5KhI5IbR4jo6/xq9DVPXzyKujpHQvSPpsCLKjybNaWTB7CRFmC084qOJAp5BnB50jkshc96qkCwfdpvZktrRmwTFuTNX75rLck4HBo26lKjVglSFIpVaVFbGIwob7LyXFCTYjWZ/nl2bNm0me+1SNmXqTyyTsnQ5KsWIrmzetn8jljSaLm7dt1nzAa6reOFPtI4Zjw1LmKnhmdKecub6VeXOzls/VxU4umvfzBdHulWNOKZNgZQb650ampXlq3ChBd09FHJv25e9al482bfNwb+TE+d5MbpzmNL/DuYpG3N1u9BnDy/OYeX1tbzFokYZmDxUx65Jpl9a/vFE8e91Lz+swbLc6fsLI8Sk/R1W9vnnF3eIcSLgXP9BFOCC8PGn3GmxRYhXcPNpVR9ptQ1o4EEPYpbhes8x+KFaKq3mU24ogmZciARyCGCJ/Zl4F2n6UbjdeCPumJh62nknWlc33iYhjzrKl0FzP7545JCZYYgjbOaxRyKHzFkI3oT5QTilka951iGSfDXY5V2rjVlgdqXZpaGDYoDZpodmIrQSlCceyGWN6Pm45ooqglMnn2dSGJ54HyFYGX7YLcpoo44+Cmmkkk5KaaWWXoppCQUAADs=',
+            link: '',
             tags: ["Institucional", "Comunidade", "Visita", "Cursos"],
             categoria: "institucional",
             cor: 5,
-            animacao: 3,
+            animacao: 10,
             status: 1,
             midia: [
                 { midiTipo: 'capa', midiLink: 'https://portal.ifro.edu.br/images/Campi/Vilhena/Imagens/EstruturaFisica/20170812_084720.jpg' },

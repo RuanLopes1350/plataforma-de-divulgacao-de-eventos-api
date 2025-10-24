@@ -270,7 +270,7 @@ class EventoService {
             customMessage: 'Você não tem permissão para manipular este evento.'
         });
     }
-
+    
     async generateQRCodeImage(link) {
         try {
             const dataUrl = await QRCode.toDataURL(link);
@@ -290,11 +290,11 @@ class EventoService {
     // Lista eventos para exibição no totem
     async listarParaTotem() {
         const dataAtual = new Date();
-        
+
         // Determina o dia da semana (0-6, sendo 0 domingo)
         const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
         const diaAtual = diasSemana[dataAtual.getDay()];
-        
+
         // Determina o período do dia baseado no horário atual
         const horaAtual = dataAtual.getHours();
         let periodoAtual;
@@ -305,7 +305,7 @@ class EventoService {
         } else {
             periodoAtual = 'noite';
         }
-        
+
         return await this.repository.listarParaTotem(dataAtual, diaAtual, periodoAtual);
     }
 
