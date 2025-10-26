@@ -23,8 +23,7 @@ class AuthController {
   login = async (req, res) => {
     // 1º validação estrutural - validar os campos passados por body
     const body = req.body || {};
-    const validatedBody = LoginSchema.parse(body);
-    const data = await this.service.login(validatedBody);
+    const data = await this.service.login(body);
     return CommonResponse.success(res, data);
   }
 

@@ -12,8 +12,8 @@
     "seed": "docker exec -it eventos-api node src/seeds/seeds.js",
     "seed:local": "node src/seeds/seeds.js",
     "test": "jest --coverage --detectOpenHandles",
-    "start": "node server.js",
-    "docker": "docker compose -f docker-compose.yml up --build -d"
+    "start:local": "node server.js",
+    "start": "docker compose -f docker-compose.yml up --build"
   },
   "keywords": [],
   "dependencies": {

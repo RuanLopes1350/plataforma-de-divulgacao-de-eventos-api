@@ -2,24 +2,6 @@
 
 services:
   # Serviço da API em modo desenvolvimento
-  api:
-    container_name: eventos-api
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "${API_PORT}:${API_PORT}"
-    environment:
-      - TERM=xterm
-    env_file:
-      - ./.env
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    command: npx nodemon --legacy-watch server.js
-    depends_on:
-      - mongo
-
   mongo:
     image: mongo:8
     container_name: eventos-mongodb
@@ -30,5 +12,40 @@ services:
     command: mongod --quiet --logpath /dev/null
     restart: always
 
+  api:
+    container_name: eventos-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    environment:
+      - TERM=xterm
+      - NODE_ENV=development
+    env_file:
+      - ./.env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npx nodemon --legacy-watch server.js
+    depends_on:
+      - mongo
+  
+  frontend:
+    container_name: eventos-front
+    build:
+      context: ../plataforma-de-divulgacao-de-eventos-front
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    env_file:
+      - ../plataforma-de-divulgacao-de-eventos-front/.env.local
+    environment:
+      - HOST=0.0.0.0
+    command: ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
+    restart: always
+    
 volumes:
   mongo-data-dev:

@@ -16,5 +16,5 @@ RUN npm ci
 # Copia todo o código da aplicação para o contêiner
 COPY . .
 
-# Comando para rodar a aplicação
-CMD [ "npm", "start" ]
+# Comando para rodar a aplicação dentro do container
+CMD [ "npm", "run", "start:local" ]
