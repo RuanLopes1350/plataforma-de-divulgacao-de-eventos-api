@@ -6,6 +6,10 @@ const port = process.env.API_PORT || 5001;
 const host = '0.0.0.0';
 
 //Mensagem com o link do servidor//
-app.listen(port, host, () => {
+app.listen(port, (error) => {
+    if(error) {
+        console.error('Erro ao iniciar o servidor:', error);
+        process.exit(1);
+    }
     console.log(`Servidor escutando em http://localhost:${port}`);
 });
