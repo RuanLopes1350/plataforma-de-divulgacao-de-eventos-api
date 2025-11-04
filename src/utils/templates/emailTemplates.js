@@ -33,7 +33,7 @@ export const emailRecover = (data) => ({
     textoDestaque: "Este link expira em 1 hora.",
     mostrarBotao: true,
     textoBotao: "Alterar Senha",
-    urlBotao: `${FRONTEND_URL}/recuperar_senha/${data.token}`,
+    urlBotao: `${FRONTEND_URL}/nova_senha/${data.token}`,
     corBotao: "#4338CA",
   },
 });
