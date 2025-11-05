@@ -62,7 +62,7 @@ async function seedUsuarios() {
         },
         {
             nome: "Eduardo Tartas",
-            email: "eduardo@gmail.com",
+            email: "dudutartas@gmail.com",
             senha: gerarSenhaHash(),
             status: "ativo"
         },
