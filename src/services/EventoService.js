@@ -121,6 +121,8 @@ class EventoService {
             $push: {
                 permissoes: {
                     usuario: usuarioDestino._id,
+                    nome: usuarioDestino.nome,
+                    email: usuarioDestino.email,
                     permissao,
                     expiraEm
                 }
