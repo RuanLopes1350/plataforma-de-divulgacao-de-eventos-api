@@ -97,32 +97,9 @@ const EventoSchema = z.object({
             .refine((tags) => !tags || tags.length === 0 || tags.every(tag => tag.trim().length > 0), {
                 message: 'Tags não podem ser vazias'
             }),
-        categoria: z.enum([
-            'academico',
-            'palestra',
-            'workshop',
-            'seminario',
-            'congresso',
-            'minicurso',
-            'cultural',
-            'esportivo',
-            'social',
-            'cientifico',
-            'extensao',
-            'pesquisa',
-            'feira',
-            'mostra',
-            'competicao',
-            'formatura',
-            'vestibular',
-            'enem',
-            'institucional',
-            'outros'
-        ], {
-            errorMap: () => ({
-                message: 'A categoria deve ser uma das opções válidas disponíveis.'
-            }),
-        }),
+        categoria: z.string()
+            .min(3, 'Categoria deve ter no mínimo 3 caracteres')
+            .max(200, 'Categoria deve ter no máximo 200 caracteres'),
         cor: z.number()
             .int()
             .nonnegative()
