@@ -8,6 +8,7 @@ import DbConnect from './config/DbConnect.js';
 import errorHandler from './utils/helpers/errorHandler.js';
 import logger from './utils/logger.js';
 import CommonResponse from './utils/helpers/CommonResponse.js';
+import UsuarioService from './services/UsuarioService.js';
 
 const app = express();
 
@@ -21,8 +22,32 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Admin padrão
+const nomePadrao = process.env.ADMIN_NOME
+const emailPadrao = process.env.ADMIN_EMAIL
+const senhaPadrao = process.env.ADMIN_SENHA
+
+const adminPadrao = {
+  nome: nomePadrao,
+  email: emailPadrao,
+  senha: senhaPadrao
+}
+const usuarioService = new UsuarioService();
+
+try {
+  console.log('Verificando Administrador padrão!')
+  let resposta = await usuarioService.cadastrarAdminPadrao(adminPadrao)
+  if (resposta) {
+    (console.log('Criando administrador padrão...'))
+  }
+} catch (error) {
+  console.log(`Erro: ${error}`)
+}
+
 // Servir arquivos estáticos da pasta uploads
 import path from 'path';
+import UsuarioController from './controllers/UsuarioController.js';
+import { tr } from '@faker-js/faker';
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 /* ───────────── 3. Rotas ───────────── */

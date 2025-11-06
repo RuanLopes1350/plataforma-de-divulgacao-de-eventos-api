@@ -34,6 +34,22 @@ class UsuarioService {
         return data;
     }
 
+    async cadastrarAdminPadrao(dadosUsuario) {
+        await this.validateEmail(dadosUsuario.email);
+
+        // Aplica o Hash da senha ao cadastrar
+        const senhaHash = await bcrypt.hash(dadosUsuario.senha, 10);
+
+        const dadosSeguros = {
+            ...dadosUsuario,
+            senha: senhaHash,
+        };
+
+        const data = await this.repository.cadastrar(dadosSeguros);
+        
+        return data;
+    }
+
     // GET /usuario && GET /usuario/:id
     async listar(req) {
         if (typeof req === 'string') {
