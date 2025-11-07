@@ -26,7 +26,7 @@ class UsuarioRepository {
     async listarPorId(id, includeTokens = false) {
         let query = this.model.findById(id);
 
-        if(includeTokens) {
+        if (includeTokens) {
             query = query.select('+refreshtoken +accesstoken');
         }
 
@@ -116,7 +116,7 @@ class UsuarioRepository {
      * Armazenar accesstoken e refreshtoken no banco de dados
      */
     async armazenarTokens(id, accesstoken, refreshtoken) {
-        const documento = await this.model.findByIdAndUpdate(id, 
+        const documento = await this.model.findByIdAndUpdate(id,
             {
                 $set: { accesstoken, refreshtoken },
             },
@@ -148,6 +148,11 @@ class UsuarioRepository {
             });
         }
         return usuario;
+    }
+
+    async deletar(id) {
+        const data = await this.model.findByIdAndDelete(id);
+        return data;
     }
 }
 

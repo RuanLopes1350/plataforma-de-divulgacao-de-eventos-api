@@ -22,18 +22,18 @@ class AuthMiddleware {
   _getTokenAndSecret(req, requisicaoTotem = false) {
     // 1. Header Authorization ───────────────────────────────
     const authHeader = req.headers?.authorization ?? null;
-    if(authHeader) {
+    if (authHeader) {
       // Permite “Bearer <token>” ou apenas o token cru
       const parts = authHeader.split(' ');
       const token = parts.length === 2 ? parts[1] : parts[0];
-      return { 
+      return {
         token,
         secret: process.env.JWT_SECRET_ACCESS_TOKEN
       };
     }
-    
+
     // 2. Query String (para recuperação de senha) ────────────────
-    if(req.query?.token) {
+    if (req.query?.token) {
       return {
         token: req.query.token,
         secret: process.env.JWT_SECRET_PASSWORD_RECOVERY
@@ -44,7 +44,7 @@ class AuthMiddleware {
     if (requisicaoTotem) {
       return null;
     }
-    
+
     // 4. Nas rotas onde a autenticação é obrigatória, se nada for encontrado, lança erro ────────────────
     throw new AuthenticationError("Token não informado!");
   }
@@ -52,17 +52,18 @@ class AuthMiddleware {
   // Função auxiliar para enriquecer os dados do usuário na requisição para uso em outras partes da aplicação
   async _userData(req, userId) {
     const usuario = await this.service.repository.listarPorId(userId);
-    
+
     if (usuario) {
       req.user = {
         _id: usuario._id.toString(),
         nome: usuario.nome,
         email: usuario.email,
+        admin: usuario.admin,
       };
       req.user_id = userId;
       return true;
     }
-    
+
     return false;
   }
 
@@ -71,16 +72,16 @@ class AuthMiddleware {
       const isGetEventMethod = req.method === 'GET' && req.path.startsWith('/eventos');
 
       // Se for um GET do totem para eventos, não requer autenticação
-      if(isGetEventMethod) {
+      if (isGetEventMethod) {
         // Tenta obter token opcional (não lança erro se não existir)
         const tokenAndSecret = this._getTokenAndSecret(req, true);
-        
-        if(tokenAndSecret) {
+
+        if (tokenAndSecret) {
           try {
             const { token, secret } = tokenAndSecret;
             const decoded = await promisify(jwt.verify)(token, secret);
 
-            if(decoded?.id) {
+            if (decoded?.id) {
               const tokenData = await this.service.carregatokens(decoded.id);
 
               if (!tokenData?.data?.accesstoken) {
@@ -96,13 +97,13 @@ class AuthMiddleware {
         }
         return next();
       }
-      
+
       // Para todas as outras rotas, requer autenticação obrigatória
       const { token, secret } = this._getTokenAndSecret(req);
 
       // Verifica e decodifica o token
       const decoded = await promisify(jwt.verify)(token, secret);
-      
+
       // Se falhou a verificação, jwt.verify já lança JsonWebTokenError / TokenExpiredError
       // porém incluímos este “if” por segurança contra valores falsy   
       if (!decoded) {
@@ -115,7 +116,7 @@ class AuthMiddleware {
        * essa checagem não é necessária.
        */
 
-      if(secret === process.env.JWT_SECRET_ACCESS_TOKEN) {
+      if (secret === process.env.JWT_SECRET_ACCESS_TOKEN) {
         // Verifica se o refreshtoken está presente no banco de dados e se é válido
         const tokenData = await this.service.carregatokens(decoded.id);
 
@@ -128,8 +129,8 @@ class AuthMiddleware {
             customMessage: 'Refresh token inválido, autentique novamente!'
           });
         }
-      }      
-      
+      }
+
       // Token válido → enriquece os dados do usuário
       const usuario = await this._userData(req, decoded.id);
 
@@ -142,7 +143,7 @@ class AuthMiddleware {
           customMessage: 'Usuário não encontrado!'
         });
       }
-      
+
       next();
 
     } catch (err) {

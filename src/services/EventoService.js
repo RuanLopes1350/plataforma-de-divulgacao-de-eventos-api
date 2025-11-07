@@ -3,7 +3,7 @@
 import EventoRepository from "../repositories/EventoRepository.js";
 import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
-import {emailCompartilhamentoDono, emailCompartilhamento} from "../utils/templates/emailTemplates.js";
+import { emailCompartilhamentoDono, emailCompartilhamento } from "../utils/templates/emailTemplates.js";
 import { EventoQuerySchema } from "../utils/validators/schemas/zod/querys/EventoQuerySchema.js";
 import { CustomError, HttpStatusCodes, messages } from "../utils/helpers/index.js";
 import QRCode from 'qrcode';
@@ -145,7 +145,7 @@ class EventoService {
 
         await enviarEmail(emailCompartilhamentoDono(emailDataDono));
         await enviarEmail(emailCompartilhamento(emailDataDestino));
-    
+
         const eventoAtualizado = await this.repository.listarPorId(eventoId);
         return { message: 'Permissão compartilhada com sucesso.', evento: eventoAtualizado };
     }
@@ -291,7 +291,7 @@ class EventoService {
             customMessage: 'Você não tem permissão para manipular este evento.'
         });
     }
-    
+
     async generateQRCodeImage(link) {
         try {
             const dataUrl = await QRCode.toDataURL(link);
@@ -328,6 +328,11 @@ class EventoService {
         }
 
         return await this.repository.listarParaTotem(dataAtual, diaAtual, periodoAtual);
+    }
+
+    // Lista TODOS os eventos do sistema (apenas admin)
+    async listarTodosEventos(req) {
+        return await this.repository.listarTodosEventos(req);
     }
 
 }

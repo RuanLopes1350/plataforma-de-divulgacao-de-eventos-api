@@ -21,9 +21,11 @@ await DbConnect.conectar();
 // ----------------------------------------------------------------------------
 async function main() {
     try {
-        // 1 Entidades de acesso
-        const usuarios = await seedUsuarios();
-        await seedEventos(usuarios);
+        // 1. Seed de usuários (deve ser executado primeiro)
+        await seedUsuarios();
+
+        // 2. Seed de eventos (busca usuários do banco automaticamente)
+        await seedEventos();
 
         console.log(">>>> SEED FINALIZADO COM SUCESSO! <<<<");
     } catch (err) {

@@ -26,11 +26,7 @@ await DbConnect.conectar();
 // ----------------------------------------------------------------------------
 // Função para gerar senha criptografada
 export function gerarSenhaHash() {
-  return bcrypt.hashSync('ABab@123456', 8);
-}
-
-export function gerarHashSenhaAdmin(){
-    return bcrypt.hashSync('admin', 8);
+    return bcrypt.hashSync('ABab@123456', 8);
 }
 
 // ----------------------------------------------------------------------------
@@ -43,28 +39,28 @@ async function seedUsuarios() {
 
     const usuariosFixos = [
         {
-            nome: "Admin",
-            email: "admin@admin.com",
-            senha: gerarHashSenhaAdmin(),
-            status: "ativo"
-        },
-        {
             nome: "Ruan Lopes",
             email: "intel.spec.lopes@gmail.com",
             senha: gerarSenhaHash(),
-            status: "ativo"
+            admin: true,
+            status: "ativo",
+            createdAt: new Date()
         },
         {
             nome: "João Vitor",
             email: "joaovitor@email.com",
+            admin: true,
             senha: gerarSenhaHash(),
-            status: "ativo" 
+            status: "ativo",
+            createdAt: new Date()
         },
         {
             nome: "Eduardo Tartas",
             email: "eduardo@gmail.com",
+            admin: true,
             senha: gerarSenhaHash(),
-            status: "ativo"
+            status: "ativo",
+            createdAt: new Date()
         },
     ];
 
@@ -82,7 +78,9 @@ async function seedUsuarios() {
             nome: mapping.nome(),
             email: mapping.email(),
             senha: gerarSenhaHash(),
-            status: mapping.status()
+            admin: false,
+            status: mapping.status(),
+            createdAt: mapping.createdAt()
         });
     }
 

@@ -4,7 +4,7 @@ import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import { UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
-import {emailDeBoasVindas} from "../utils/templates/emailTemplates.js";
+import { emailDeBoasVindas } from "../utils/templates/emailTemplates.js";
 import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
 import { enviarEmail } from "../utils/mailClient.js";
@@ -28,9 +28,25 @@ class UsuarioService {
         };
 
         const data = await this.repository.cadastrar(dadosSeguros);
-        
+
         await enviarEmail(emailDeBoasVindas(data));
-        
+
+        return data;
+    }
+
+    async cadastrarAdminPadrao(dadosUsuario) {
+        await this.validateEmail(dadosUsuario.email);
+
+        // Aplica o Hash da senha ao cadastrar
+        const senhaHash = await bcrypt.hash(dadosUsuario.senha, 10);
+
+        const dadosSeguros = {
+            ...dadosUsuario,
+            senha: senhaHash,
+        };
+
+        const data = await this.repository.cadastrar(dadosSeguros);
+
         return data;
     }
 
@@ -259,6 +275,13 @@ class UsuarioService {
             });
         }
         return usuarioExistente;
+    }
+
+    async deletar(id) {
+        if (id) {
+            const data = await this.repository.deletar(id);
+            return data;
+        }
     }
 }
 
