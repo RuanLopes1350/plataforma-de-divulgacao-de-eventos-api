@@ -26,7 +26,7 @@ await DbConnect.conectar();
 // ----------------------------------------------------------------------------
 // Função para gerar senha criptografada
 export function gerarSenhaHash() {
-  return bcrypt.hashSync('ABab@123456', 8);
+    return bcrypt.hashSync('ABab@123456', 8);
 }
 
 // ----------------------------------------------------------------------------
@@ -43,21 +43,24 @@ async function seedUsuarios() {
             email: "intel.spec.lopes@gmail.com",
             senha: gerarSenhaHash(),
             admin: true,
-            status: "ativo"
+            status: "ativo",
+            createdAt: new Date()
         },
         {
             nome: "João Vitor",
             email: "joaovitor@email.com",
             admin: true,
             senha: gerarSenhaHash(),
-            status: "ativo" 
+            status: "ativo",
+            createdAt: new Date()
         },
         {
             nome: "Eduardo Tartas",
             email: "eduardo@gmail.com",
             admin: true,
             senha: gerarSenhaHash(),
-            status: "ativo"
+            status: "ativo",
+            createdAt: new Date()
         },
     ];
 
@@ -76,7 +79,8 @@ async function seedUsuarios() {
             email: mapping.email(),
             senha: gerarSenhaHash(),
             admin: false,
-            status: mapping.status()
+            status: mapping.status(),
+            createdAt: mapping.createdAt()
         });
     }
 
