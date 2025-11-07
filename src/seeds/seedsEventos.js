@@ -40,9 +40,17 @@ function unifyMidias(midiaVideo = [], midiaCapa = [], midiaCarrossel = []) {
 
 
 
-async function seedEventos(usuarios) {
+async function seedEventos() {
     // Remove antes de criar os eventos
     await Evento.deleteMany();
+
+    // Busca o usuário Ruan Lopes do banco para usar nos eventos fixos
+    const usuarioFixo = await Usuario.findOne({ email: "intel.spec.lopes@gmail.com" });
+
+    if (!usuarioFixo) {
+        console.error("Usuário não encontrado! Execute o seed de usuários primeiro.");
+        return;
+    }
 
     const eventosFixos = [
         {
@@ -58,7 +66,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-20T00:00:00Z"),
             exibFim: new Date("2025-12-10T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-coordenacao-ads"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Tecnologia", "Programação", "Inovação"],
@@ -86,7 +95,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-01T00:00:00Z"),
             exibFim: new Date("2025-12-23T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-departamento-extensao"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Ciência", "Pesquisa", "Tecnologia"],
@@ -115,7 +125,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-10T00:00:00Z"),
             exibFim: new Date("2025-12-12T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-coordenacao-ads"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Node.js", "Backend", "Programação"],
@@ -143,7 +154,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-25T00:00:00Z"),
             exibFim: new Date("2025-12-30T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-departamento-extensao"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Carreira", "Mercado de Trabalho", "TI"],
@@ -171,7 +183,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-09-15T00:00:00Z"),
             exibFim: new Date("2025-12-27T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-gremio-estudantil"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: '',
             tags: ["Institucional", "Comunidade", "Visita", "Cursos"],
@@ -199,11 +212,22 @@ async function seedEventos(usuarios) {
 
     const eventosAleatorios = [];
 
+    // Busca todos os usuários do banco para usar nos eventos aleatórios
+    const todosUsuarios = await Usuario.find();
+
+    if (todosUsuarios.length === 0) {
+        console.error("Nenhum usuário encontrado! Execute o seed de usuários primeiro.");
+        return;
+    }
+
     for (let i = 0; i < 20; i++) {
         const dataInicio = mapping.dataInicio();
         const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // +2h
 
         const midiaArr = mapping.midia ? mapping.midia() : [];
+
+        // Seleciona um usuário aleatório da lista
+        const usuarioAleatorio = todosUsuarios[i % todosUsuarios.length];
 
         eventosAleatorios.push({
             titulo: mapping.titulo(),
@@ -218,7 +242,8 @@ async function seedEventos(usuarios) {
             exibInicio: mapping.exibInicio(),
             exibFim: mapping.exibFim(),
             organizador: {
-                _id: usuarios[i % usuarios.length]._id
+                _id: usuarioAleatorio._id,
+                nome: usuarioAleatorio.nome
             },
             link: mapping.linkInscricao ? mapping.linkInscricao() : (mapping.link ? mapping.link() : ''),
             tags: Array.isArray(mapping.tags) ? mapping.tags().join(',') : (mapping.tags ? mapping.tags() : ''),

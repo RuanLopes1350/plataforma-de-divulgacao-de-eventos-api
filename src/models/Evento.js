@@ -92,6 +92,10 @@ class Evento {
                         ref: 'usuarios',
                         required: true,
                     },
+                    nome: { 
+                        type: String, 
+                        required: true 
+                    }
                 },
                 tags: { 
                     type: [String],
