@@ -24,6 +24,7 @@ const fakeMappings = {
         faker.person.lastName(),
         email: () => faker.internet.email(),
         senha: () => faker.internet.password(),
+        admin: false,
         status: () => faker.helpers.arrayElement(['ativo', 'inativo']),
         tokenUnico: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
         exp_tokenUnico_recuperacao: () => faker.date.future({ minutes: 60 }),
@@ -52,8 +53,7 @@ const fakeMappings = {
         exibFim: () => faker.date.future({ days: 30 }),
         link: () => faker.internet.url(),
         organizador: () => ({
-          _id: new mongoose.Types.ObjectId(),
-          nome: faker.person.fullName()
+          _id: new mongoose.Types.ObjectId()
         }),
         tags: () => [faker.lorem.word(), faker.lorem.word()],
         categoria: () => faker.helpers.arrayElement([

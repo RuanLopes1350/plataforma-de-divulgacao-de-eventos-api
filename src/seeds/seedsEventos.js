@@ -58,8 +58,7 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-20T00:00:00Z"),
             exibFim: new Date("2025-12-10T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-coordenacao-ads",
-                nome: "Coordenação de ADS"
+                _id: "placeholder-id-coordenacao-ads"
             },
             link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Tecnologia", "Programação", "Inovação"],
@@ -87,8 +86,7 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-01T00:00:00Z"),
             exibFim: new Date("2025-12-23T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-departamento-extensao",
-                nome: "Departamento de Extensão"
+                _id: "placeholder-id-departamento-extensao"
             },
             link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Ciência", "Pesquisa", "Tecnologia"],
@@ -117,8 +115,7 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-10T00:00:00Z"),
             exibFim: new Date("2025-12-12T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-coordenacao-ads",
-                nome: "Coordenação de ADS"
+                _id: "placeholder-id-coordenacao-ads"
             },
             link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Node.js", "Backend", "Programação"],
@@ -146,8 +143,7 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-25T00:00:00Z"),
             exibFim: new Date("2025-12-30T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-departamento-extensao",
-                nome: "Departamento de Extensão"
+                _id: "placeholder-id-departamento-extensao"
             },
             link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Carreira", "Mercado de Trabalho", "TI"],
@@ -175,8 +171,7 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-09-15T00:00:00Z"),
             exibFim: new Date("2025-12-27T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-gremio-estudantil",
-                nome: "Grêmio Estudantil"
+                _id: "placeholder-id-gremio-estudantil"
             },
             link: '',
             tags: ["Institucional", "Comunidade", "Visita", "Cursos"],
@@ -223,8 +218,7 @@ async function seedEventos(usuarios) {
             exibInicio: mapping.exibInicio(),
             exibFim: mapping.exibFim(),
             organizador: {
-                _id: usuarios[i % usuarios.length]._id,
-                nome: usuarios[i % usuarios.length].nome
+                _id: usuarios[i % usuarios.length]._id
             },
             link: mapping.linkInscricao ? mapping.linkInscricao() : (mapping.link ? mapping.link() : ''),
             tags: Array.isArray(mapping.tags) ? mapping.tags().join(',') : (mapping.tags ? mapping.tags() : ''),

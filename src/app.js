@@ -30,6 +30,7 @@ const senhaPadrao = process.env.ADMIN_SENHA
 const adminPadrao = {
   nome: nomePadrao,
   email: emailPadrao,
+  admin: true,
   senha: senhaPadrao
 }
 const usuarioService = new UsuarioService();
