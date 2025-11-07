@@ -94,6 +94,7 @@ class UsuarioController {
       });
     }
 
+
     const { status } = req.body;
 
     objectIdSchema.parse(id);
@@ -102,6 +103,23 @@ class UsuarioController {
 
     return CommonResponse.success(res, data, 200, `Status do usuário atualizado para ${status}.`);
   }
-}
 
+  async deletar(req, res) {
+    const { id } = req.params;
+
+    if (id) {
+      objectIdSchema.parse(id);
+      const data = await this.service.deletar(id);
+
+      if (!data) {
+        throw new CustomError({
+          message: messages.user.notFound(),
+          statusCode: HttpStatusCodes.NOT_FOUND.code
+        });
+      }
+
+      return CommonResponse.success(res, data);
+    }
+  }
+}
 export default UsuarioController;
