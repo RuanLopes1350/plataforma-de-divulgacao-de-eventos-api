@@ -1165,7 +1165,133 @@ const eventosPath = {
         }
       }
     }
+  },
+   "/eventos/{eventoId}/midia/{tipo}/{midiaId}": {
+  "delete": {
+    "tags": ["Eventos"],
+    "summary": "Remove uma mídia específica de um evento",
+    "description": "Remove uma mídia (imagem de capa, imagem de carrossel ou vídeo) de um evento. Ação permitida somente para administradores autenticados.",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "eventoId",
+        "in": "path",
+        "required": true,
+        "description": "ID do evento",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "tipo",
+        "in": "path",
+        "required": true,
+        "description": "Tipo da mídia a remover (capa, carrossel ou video)",
+        "schema": {
+          "type": "string",
+          "enum": ["capa", "carrossel", "video"]
+        }
+      },
+      {
+        "name": "midiaId",
+        "in": "path",
+        "required": true,
+        "description": "ID da mídia",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Mídia removida com sucesso",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Mídia removida com sucesso."
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "401": {
+        "description": "Usuário não autenticado",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Token inválido ou não fornecido.",
+              "error": {
+                "code": "UNAUTHORIZED",
+                "details": "Usuário não autenticado."
+              }
+            }
+          }
+        }
+      },
+
+      "403": {
+        "description": "Usuário não possui permissão",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Acesso negado. Apenas administradores podem executar esta ação.",
+              "error": {
+                "code": "FORBIDDEN",
+                "details": "Usuário sem permissão necessária."
+              }
+            }
+          }
+        }
+      },
+
+      "404": {
+        "description": "Mídia não encontrada",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Mídia não encontrada.",
+              "error": {
+                "code": "NOT_FOUND",
+                "details": "O midiaId fornecido não existe para este evento."
+              }
+            }
+          }
+        }
+      },
+
+      "500": {
+        "description": "Erro interno no servidor",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Erro interno no servidor.",
+              "error": {
+                "code": "SERVER_ERROR",
+                "details": "Ocorreu um problema inesperado. Tente novamente mais tarde."
+              }
+            }
+          }
+        }
+      }
+    }
   }
+}
+
+
 };
 
 export default eventosPath;
