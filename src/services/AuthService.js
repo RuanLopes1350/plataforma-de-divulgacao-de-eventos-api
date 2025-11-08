@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import tokenUtil from '../utils/TokenUtil.js';
-import {emailRecover} from "../utils/templates/emailTemplates.js";
+import { emailRecover } from "../utils/templates/emailTemplates.js";
 import { v4 as uuid } from 'uuid';
 import TokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
@@ -32,6 +32,16 @@ class AuthService {
     async login(body) {
         // Buscar o usuário pelo email
         const userEncontrado = await this.repository.buscarPorEmail(body.email);
+        if (userEncontrado.status === "inativo") {
+            throw new CustomError({
+                statusCode: 401,
+                errorType: 'unauthorized',
+                field: 'Email',
+                details: [],
+                customMessage: messages.error.unauthorized('Usuário inativo')
+            })
+            return;
+        }
         if (!userEncontrado) {
 
             /**
@@ -149,11 +159,11 @@ class AuthService {
         }
 
         await enviarEmail(emailRecover(data))
-        
+
 
         // um novo serviço de notificação conforme necessário.
         console.log('Token de recuperação gerado:', tokenUnico);
-        
+
         return {
             message: 'Solicitação de recuperação de senha recebida.',
             token: tokenUnico // Retornando o token para testes/desenvolvimento
@@ -185,7 +195,7 @@ class AuthService {
                 field: 'Token',
                 details: [],
                 customMessage: "Token de recuperação já foi utilizado ou é inválido."
-            }); 
+            });
         }
 
         // 2) Verifica expiração
