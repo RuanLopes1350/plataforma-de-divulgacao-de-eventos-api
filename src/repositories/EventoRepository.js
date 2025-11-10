@@ -234,7 +234,9 @@ class EventoRepository {
             animacao: 1,
             categoria: 1,
             tags: 1,
-            link: 1
+            link: 1,
+            duracao: 1,
+            loops: 1
         };
 
         return await this.model.find(filtros, projection).sort({ dataInicio: 1 });

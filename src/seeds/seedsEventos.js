@@ -80,6 +80,8 @@ async function seedEventos() {
                 { midiTipo: 'carrossel', midiLink: 'https://plus.unsplash.com/premium_photo-1690303193653-0418179e5512?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=697' },
                 { midiTipo: 'carrossel', midiLink: 'https://images.pexels.com/photos/1181260/pexels-photo-1181260.jpeg' }
             ],
+            duracao: 6000,
+            loops: 2,
             permissoes: [],
         },
         {
@@ -110,6 +112,8 @@ async function seedEventos() {
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' },
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1518152006812-edab29b069ac?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' }
             ],
+            duracao: 3000,
+            loops: 5,
             permissoes: [],
         },
         {
@@ -139,6 +143,8 @@ async function seedEventos() {
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1074' },
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1619410283995-43d9134e7656?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' }
             ],
+            duracao: 4000,
+            loops: 4,
             permissoes: [],
         },
         {
@@ -168,6 +174,8 @@ async function seedEventos() {
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1525284412981-f7591a441578?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=781' },
                 { midiTipo: 'carrossel', midiLink: 'https://plus.unsplash.com/premium_photo-1678566153919-86c4ba4216f1?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' }
             ],
+            duracao: 5000,
+            loops: 3,
             permissoes: [],
         },
         {
@@ -201,6 +209,8 @@ async function seedEventos() {
                 { midiTipo: 'carrossel', midiLink: 'https://portal.ifro.edu.br/images/Campi/Vilhena/Imagens/EstruturaFisica/IFRO_noite.png' },
                 { midiTipo: 'carrossel', midiLink: 'https://portal.ifro.edu.br/images/Campi/Vilhena/Imagens/EstruturaFisica/IFRO_superior.png' },
             ],
+            duracao: 2000,
+            loops: 3,
             permissoes: [],
         }
     ];
@@ -248,10 +258,12 @@ async function seedEventos() {
             link: mapping.linkInscricao ? mapping.linkInscricao() : (mapping.link ? mapping.link() : ''),
             tags: Array.isArray(mapping.tags) ? mapping.tags().join(',') : (mapping.tags ? mapping.tags() : ''),
             categoria: mapping.categoria ? mapping.categoria() : 'institucional',
-            cor: 0,
-            animacao: 0,
+            cor: mapping.cor(),
+            animacao: mapping.animacao(),
             status: toStatusNumber(mapping.status ? mapping.status() : 'inativo'),
             midia: mapping.midia,
+            duracao: mapping.duracao(),
+            loops: mapping.loops(),
             permissoes: mapping.permissoes ? mapping.permissoes() : [],
         });
     };

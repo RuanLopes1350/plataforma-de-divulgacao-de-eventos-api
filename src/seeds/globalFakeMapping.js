@@ -63,8 +63,8 @@ const fakeMappings = {
       'feira', 'mostra', 'competicao', 'formatura', 'vestibular', 'enem',
       'institucional', 'outros'
     ]),
-    cor: () => faker.number.int({ min: 0, max: 10 }),
-    animacao: () => faker.number.int({ min: 0, max: 5 }),
+    cor: () => faker.number.int({ min: 1, max: 9 }),
+    animacao: () => faker.number.int({ min: 1, max: 10 }),
     status: () => faker.helpers.arrayElement([0, 1]),
     midia: () => [
       {
@@ -76,6 +76,8 @@ const fakeMappings = {
         midiLink: faker.internet.url() + "/" + uuid() + ".mp4"
       }
     ],
+    duracao: () => faker.number.int({ min: 3000, max: 5000 }), // duração em milissegundos
+    loops: () => faker.number.int({ min: 3, max: 5 }), // número de loops
     permissoes: () => [
       {
         usuario: new mongoose.Types.ObjectId(),
