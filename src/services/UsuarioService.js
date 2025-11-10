@@ -19,17 +19,33 @@ class UsuarioService {
     async cadastrar(dadosUsuario) {
         await this.validateEmail(dadosUsuario.email);
 
-        // Aplica o Hash da senha ao cadastrar
-        const senhaHash = await bcrypt.hash(dadosUsuario.senha, 10);
+        // Gera uma senha temporária aleatória (usuário criará a própria senha via email)
+        const senhaTempHash = await bcrypt.hash(Math.random().toString(36), 10);
 
         const dadosSeguros = {
             ...dadosUsuario,
-            senha: senhaHash,
+            senha: senhaTempHash,
+            status: 'inativo', // Inicia inativo até definir senha
         };
 
         const data = await this.repository.cadastrar(dadosSeguros);
 
-        await enviarEmail(emailDeBoasVindas(data));
+        // Gera token de recuperação de senha (mesmo fluxo de recuperação)
+        const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(data._id);
+
+        // Define expiração do token (1 hora)
+        const expMs = Date.now() + 60 * 60 * 1000;
+        await this.repository.alterar(data._id, {
+            tokenUnico,
+            exp_tokenUnico_recuperacao: new Date(expMs)
+        });
+
+        // Envia email com link para criar senha
+        await enviarEmail(emailDeBoasVindas({
+            email: data.email,
+            nome: data.nome,
+            token: tokenUnico
+        }));
 
         return data;
     }

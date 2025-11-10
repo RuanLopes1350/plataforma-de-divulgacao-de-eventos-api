@@ -13,7 +13,8 @@
     "seed:local": "node src/seeds/seeds.js",
     "test": "jest --coverage --detectOpenHandles",
     "start:local": "node server.js",
-    "start": "docker compose -f docker-compose.yml up --build"
+    "start": "docker compose -f docker-compose.yml up --build",
+    "cron:limpeza": "node src/utils/cron-jobs/limparUsuariosSemSenha.js"
   },
   "keywords": [],
   "dependencies": {
@@ -37,6 +38,7 @@
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",
     "multer": "^2.0.0",
+    "node-cron": "^4.2.1",
     "primeiraapi": "file:",
     "qrcode": "^1.5.4",
     "sharp": "^0.34.4",

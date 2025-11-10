@@ -219,6 +219,11 @@ class AuthService {
             });
         }
 
+        // Ativa o usuário caso esteja inativo (primeiro acesso após cadastro)
+        if (usuario.status === 'inativo') {
+            await this.repository.alterar(usuarioId, { status: 'ativo' });
+        }
+
         return { message: 'Senha atualizada com sucesso.' };
     }
 

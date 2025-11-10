@@ -1,7 +1,7 @@
 // src/controllers/UsuarioController.js
 
 import UsuarioService from '../services/UsuarioService.js';
-import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
+import { UsuarioSchema, UsuarioCadastroSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
   CommonResponse,
@@ -19,16 +19,17 @@ class UsuarioController {
     this.service = new UsuarioService();
   }
 
-  // POST /usuarios
+  // POST /usuarios (Admin cadastra usuário - envia email com token)
   async cadastrar(req, res) {
-    const parsedData = UsuarioSchema.parse(req.body);
+    const parsedData = UsuarioCadastroSchema.parse(req.body);
     let data = await this.service.cadastrar(parsedData);
 
     let usuarioLimpo = data.toObject ? data.toObject() : { ...data };
 
     delete usuarioLimpo.senha; // Remove senha do objeto de resposta
+    delete usuarioLimpo.tokenUnico; // Remove token do objeto de resposta
 
-    return CommonResponse.created(res, usuarioLimpo);
+    return CommonResponse.created(res, usuarioLimpo, 'Usuário cadastrado! Um email foi enviado para que ele defina sua senha.');
   };
 
   // POST /usuarios para rota signup
