@@ -9,10 +9,11 @@ export const emailDeBoasVindas = (data) => ({
   data: {
     nome: data.nome,
     logoUrl: "https://i.imgur.com/pHjP2qy.png",
-    mensagem: "Bem-vindo ao IFRO Events! Estamos felizes em tê-lo conosco.",
+    mensagem: "Bem-vindo ao IFRO Events! Você foi cadastrado com sucesso em nossa plataforma de gerenciamento de eventos. Para começar, clique no botão abaixo para criar sua senha e poder acessar livremente a plataforma.",
     mostrarBotao: true,
     textoBotao: "Começar",
-    urlBotao: `${FRONTEND_URL}/login`
+    urlBotao: `${FRONTEND_URL}/nova_senha/${data.token}`,
+    corBotao: "#4338CA",
   }
 });
 
