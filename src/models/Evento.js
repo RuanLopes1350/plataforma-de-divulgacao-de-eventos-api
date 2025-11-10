@@ -123,6 +123,14 @@ class Evento {
                     type: [midiaSchema],
                     default: []
                 },
+                duracao: {
+                    type: Number,
+                    required: false,
+                },
+                loops: {
+                    type: Number,
+                    required: false,
+                },
                 permissoes: [permissaoSchema],
             },
             {
