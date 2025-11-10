@@ -100,10 +100,10 @@ class Evento {
                         ref: 'usuarios',
                         required: true,
                     },
-                    nome: {
-                        type: String,
-                        required: true,
-                    },
+                    nome: { 
+                        type: String, 
+                        required: true 
+                    }
                 },
                 tags: { 
                     type: [String],
@@ -130,6 +130,14 @@ class Evento {
                 midia: {
                     type: [midiaSchema],
                     default: []
+                },
+                duracao: {
+                    type: Number,
+                    required: false,
+                },
+                loops: {
+                    type: Number,
+                    required: false,
                 },
                 permissoes: [permissaoSchema],
             },

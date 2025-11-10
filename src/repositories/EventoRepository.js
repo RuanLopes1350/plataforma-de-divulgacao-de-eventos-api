@@ -234,10 +234,44 @@ class EventoRepository {
             animacao: 1,
             categoria: 1,
             tags: 1,
-            link: 1
+            link: 1,
+            duracao: 1,
+            loops: 1
         };
 
         return await this.model.find(filtros, projection).sort({ dataInicio: 1 });
+    }
+
+    // Lista TODOS os eventos do sistema (apenas admin)
+    async listarTodosEventos(req) {
+        const {
+            titulo,
+            categoria,
+            status,
+            page = 1,
+            limite = 10,
+            ordenarPor = '-createdAt'
+        } = req.query;
+
+        const itemsPorPagina = Math.min(parseInt(limite, 10) || 10, 100);
+
+        const filterBuilder = new EventoFilterBuilder()
+            .comTitulo(titulo)
+            .comCategoria(categoria)
+            .comStatus(status)
+            .comOrdenacao(ordenarPor);
+
+        const filtros = filterBuilder.build();
+        const sortConfig = filterBuilder.getOrdenacao();
+
+        const options = {
+            page: parseInt(page),
+            limit: parseInt(itemsPorPagina),
+            sort: sortConfig,
+            lean: false
+        };
+
+        return await this.model.paginate(filtros, options);
     }
 }
 

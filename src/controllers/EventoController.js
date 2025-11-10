@@ -38,13 +38,13 @@ class EventoController {
 
         // Validação dos dados do evento (sem mídias)
         const parseData = EventoSchema.parse(dadosEvento);
-        
+
         // Cadastra o evento
         const data = await this.service.cadastrar(parseData);
-        
+
         return CommonResponse.created(res, data);
     }
-    
+
     // GET /eventos && GET /eventos/:id
     async listar(req, res) {
         console.log("Estou no listar em EventoController");
@@ -76,13 +76,13 @@ class EventoController {
     async alterar(req, res) {
         const { id } = req.params;
         const usuarioLogado = req.user;
-        
+
         objectIdSchema.parse(id);
-        
+
         const parseData = EventoUpdateSchema.parse(req.body);
-        
+
         const data = await this.service.alterar(id, parseData, usuarioLogado._id);
-        
+
         return CommonResponse.success(res, data);
     }
 
@@ -90,14 +90,14 @@ class EventoController {
     async compartilharPermissao(req, res) {
         const { id } = req.params;
         const usuarioLogado = req.user;
-        
+
         objectIdSchema.parse(id);
-        
+
         // Validação de entrada (formato) com Zod
         const { email, permissao, expiraEm } = await CompartilharPermissaoSchema.parseAsync(req.body);
 
         const data = await this.service.compartilharPermissao(id, email, permissao, expiraEm, usuarioLogado._id);
-        
+
         return CommonResponse.success(res, data, 200, 'Permissão compartilhada com sucesso!');
     }
 
@@ -105,16 +105,22 @@ class EventoController {
     async deletar(req, res) {
         const { id } = req.params;
         const usuarioLogado = req.user;
-        
+
         objectIdSchema.parse(id);
-        
+
         const data = await this.service.deletar(id, usuarioLogado._id);
-        
+
         return CommonResponse.success(res, { message: messages.validation.generic.resourceDeleted('Evento'), data });
     }
 
     async listarParaTotem(req, res) {
         const data = await this.service.listarParaTotem();
+        return CommonResponse.success(res, data);
+    }
+
+    // Lista TODOS os eventos do sistema (apenas admin)
+    async listarTodosEventos(req, res) {
+        const data = await this.service.listarTodosEventos(req);
         return CommonResponse.success(res, data);
     }
 }

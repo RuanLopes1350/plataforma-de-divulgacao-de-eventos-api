@@ -40,9 +40,17 @@ function unifyMidias(midiaVideo = [], midiaCapa = [], midiaCarrossel = []) {
 
 
 
-async function seedEventos(usuarios) {
+async function seedEventos() {
     // Remove antes de criar os eventos
     await Evento.deleteMany();
+
+    // Busca o usuário Ruan Lopes do banco para usar nos eventos fixos
+    const usuarioFixo = await Usuario.findOne({ email: "intel.spec.lopes@gmail.com" });
+
+    if (!usuarioFixo) {
+        console.error("Usuário não encontrado! Execute o seed de usuários primeiro.");
+        return;
+    }
 
     const eventosFixos = [
         {
@@ -58,8 +66,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-20T00:00:00Z"),
             exibFim: new Date("2025-12-10T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-coordenacao-ads",
-                nome: "Coordenação de ADS"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Tecnologia", "Programação", "Inovação"],
@@ -72,6 +80,8 @@ async function seedEventos(usuarios) {
                 { midiTipo: 'carrossel', midiLink: 'https://plus.unsplash.com/premium_photo-1690303193653-0418179e5512?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=697' },
                 { midiTipo: 'carrossel', midiLink: 'https://images.pexels.com/photos/1181260/pexels-photo-1181260.jpeg' }
             ],
+            duracao: 6000,
+            loops: 2,
             permissoes: [],
         },
         {
@@ -87,8 +97,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-01T00:00:00Z"),
             exibFim: new Date("2025-12-23T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-departamento-extensao",
-                nome: "Departamento de Extensão"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Ciência", "Pesquisa", "Tecnologia"],
@@ -102,6 +112,8 @@ async function seedEventos(usuarios) {
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' },
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1518152006812-edab29b069ac?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' }
             ],
+            duracao: 3000,
+            loops: 5,
             permissoes: [],
         },
         {
@@ -117,8 +129,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-10T00:00:00Z"),
             exibFim: new Date("2025-12-12T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-coordenacao-ads",
-                nome: "Coordenação de ADS"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: "https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt",
             tags: ["Node.js", "Backend", "Programação"],
@@ -131,6 +143,8 @@ async function seedEventos(usuarios) {
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1074' },
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1619410283995-43d9134e7656?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' }
             ],
+            duracao: 4000,
+            loops: 4,
             permissoes: [],
         },
         {
@@ -146,8 +160,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-10-25T00:00:00Z"),
             exibFim: new Date("2025-12-30T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-departamento-extensao",
-                nome: "Departamento de Extensão"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: 'https://youtu.be/QDia3e12czc?si=esLAcFuetnd-LXCt',
             tags: ["Carreira", "Mercado de Trabalho", "TI"],
@@ -160,6 +174,8 @@ async function seedEventos(usuarios) {
                 { midiTipo: 'carrossel', midiLink: 'https://images.unsplash.com/photo-1525284412981-f7591a441578?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=781' },
                 { midiTipo: 'carrossel', midiLink: 'https://plus.unsplash.com/premium_photo-1678566153919-86c4ba4216f1?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170' }
             ],
+            duracao: 5000,
+            loops: 3,
             permissoes: [],
         },
         {
@@ -175,8 +191,8 @@ async function seedEventos(usuarios) {
             exibInicio: new Date("2025-09-15T00:00:00Z"),
             exibFim: new Date("2025-12-27T23:59:59Z"),
             organizador: {
-                _id: "placeholder-id-gremio-estudantil",
-                nome: "Grêmio Estudantil"
+                _id: usuarioFixo._id,
+                nome: usuarioFixo.nome
             },
             link: '',
             tags: ["Institucional", "Comunidade", "Visita", "Cursos"],
@@ -193,6 +209,8 @@ async function seedEventos(usuarios) {
                 { midiTipo: 'carrossel', midiLink: 'https://portal.ifro.edu.br/images/Campi/Vilhena/Imagens/EstruturaFisica/IFRO_noite.png' },
                 { midiTipo: 'carrossel', midiLink: 'https://portal.ifro.edu.br/images/Campi/Vilhena/Imagens/EstruturaFisica/IFRO_superior.png' },
             ],
+            duracao: 2000,
+            loops: 3,
             permissoes: [],
         }
     ];
@@ -204,11 +222,22 @@ async function seedEventos(usuarios) {
 
     const eventosAleatorios = [];
 
+    // Busca todos os usuários do banco para usar nos eventos aleatórios
+    const todosUsuarios = await Usuario.find();
+
+    if (todosUsuarios.length === 0) {
+        console.error("Nenhum usuário encontrado! Execute o seed de usuários primeiro.");
+        return;
+    }
+
     for (let i = 0; i < 20; i++) {
         const dataInicio = mapping.dataInicio();
         const dataFim = new Date(dataInicio.getTime() + (2 * 60 * 60 * 1000)); // +2h
 
         const midiaArr = mapping.midia ? mapping.midia() : [];
+
+        // Seleciona um usuário aleatório da lista
+        const usuarioAleatorio = todosUsuarios[i % todosUsuarios.length];
 
         eventosAleatorios.push({
             titulo: mapping.titulo(),
@@ -223,16 +252,18 @@ async function seedEventos(usuarios) {
             exibInicio: mapping.exibInicio(),
             exibFim: mapping.exibFim(),
             organizador: {
-                _id: usuarios[i % usuarios.length]._id,
-                nome: usuarios[i % usuarios.length].nome
+                _id: usuarioAleatorio._id,
+                nome: usuarioAleatorio.nome
             },
             link: mapping.linkInscricao ? mapping.linkInscricao() : (mapping.link ? mapping.link() : ''),
             tags: Array.isArray(mapping.tags) ? mapping.tags().join(',') : (mapping.tags ? mapping.tags() : ''),
             categoria: mapping.categoria ? mapping.categoria() : 'institucional',
-            cor: 0,
-            animacao: 0,
+            cor: mapping.cor(),
+            animacao: mapping.animacao(),
             status: toStatusNumber(mapping.status ? mapping.status() : 'inativo'),
             midia: mapping.midia,
+            duracao: mapping.duracao(),
+            loops: mapping.loops(),
             permissoes: mapping.permissoes ? mapping.permissoes() : [],
         });
     };

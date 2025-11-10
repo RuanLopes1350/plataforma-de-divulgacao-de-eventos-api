@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import tokenUtil from '../utils/TokenUtil.js';
-import {emailRecover} from "../utils/templates/emailTemplates.js";
+import { emailRecover } from "../utils/templates/emailTemplates.js";
 import { v4 as uuid } from 'uuid';
 import TokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
@@ -32,8 +32,8 @@ class AuthService {
     async login(body) {
         // Buscar o usuário pelo email
         const userEncontrado = await this.repository.buscarPorEmail(body.email);
-        if (!userEncontrado) {
 
+        if (!userEncontrado) {
             /**
              * Se o usuário não for encontrado, lança um erro personalizado
              * É importante para bibliotecas de requisições como DIO, Retrofit, Axios, etc. que o 
@@ -49,6 +49,27 @@ class AuthService {
                 details: [],
                 customMessage: messages.error.unauthorized('Senha ou Email')
             });
+        }
+
+        // Verifica se o usuário tem senha cadastrada
+        if (!userEncontrado.senha) {
+            throw new CustomError({
+                statusCode: 401,
+                errorType: 'unauthorized',
+                field: 'Senha',
+                details: [],
+                customMessage: 'Cadastro incompleto. Por favor, acesse o link enviado no seu email para criar sua senha.'
+            });
+        }
+
+        if (userEncontrado.status === "inativo") {
+            throw new CustomError({
+                statusCode: 401,
+                errorType: 'unauthorized',
+                field: 'Email',
+                details: [],
+                customMessage: messages.error.unauthorized('Usuário inativo')
+            })
         }
 
         // Validar a senha
@@ -149,11 +170,11 @@ class AuthService {
         }
 
         await enviarEmail(emailRecover(data))
-        
+
 
         // um novo serviço de notificação conforme necessário.
         console.log('Token de recuperação gerado:', tokenUnico);
-        
+
         return {
             message: 'Solicitação de recuperação de senha recebida.',
             token: tokenUnico // Retornando o token para testes/desenvolvimento
@@ -185,7 +206,7 @@ class AuthService {
                 field: 'Token',
                 details: [],
                 customMessage: "Token de recuperação já foi utilizado ou é inválido."
-            }); 
+            });
         }
 
         // 2) Verifica expiração
@@ -207,6 +228,11 @@ class AuthService {
                 details: [],
                 customMessage: 'Erro ao atualizar a senha.'
             });
+        }
+
+        // Ativa o usuário caso esteja inativo (primeiro acesso após cadastro)
+        if (usuario.status === 'inativo') {
+            await this.repository.alterar(usuarioId, { status: 'ativo' });
         }
 
         return { message: 'Senha atualizada com sucesso.' };

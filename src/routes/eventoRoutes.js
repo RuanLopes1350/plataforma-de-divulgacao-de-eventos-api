@@ -8,6 +8,7 @@ import UploadController from "../controllers/UploadController.js";
 import { asyncWrapper } from '../utils/helpers/index.js';
 
 import multer from 'multer';
+import AdminMiddleware from "../middlewares/AdminMiddleware.js";
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -19,6 +20,7 @@ const uploadController = new UploadController();  // Instância da classe
 
 router
     .post("/eventos/", AuthMiddleware, asyncWrapper(eventoController.cadastrar.bind(eventoController)))
+    .get("/eventos/admin", AuthMiddleware, AdminMiddleware, asyncWrapper(eventoController.listarTodosEventos.bind(eventoController)))
     .get("/eventos", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id/qrcode", AuthMiddleware, asyncWrapper(eventoController.gerarQRCode.bind(eventoController)))

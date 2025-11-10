@@ -4,7 +4,7 @@ import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import { UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
-import {emailDeBoasVindas} from "../utils/templates/emailTemplates.js";
+import { emailDeBoasVindas } from "../utils/templates/emailTemplates.js";
 import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
 import { enviarEmail } from "../utils/mailClient.js";
@@ -15,8 +15,40 @@ class UsuarioService {
         this.TokenUtil = TokenUtil; // Instância do TokenUtil para manipulação de tokens
     }
 
-    // POST /usuario
+    // POST /usuario (Admin cadastra usuário - sem senha)
     async cadastrar(dadosUsuario) {
+        await this.validateEmail(dadosUsuario.email);
+
+        // NÃO define senha - campo ficará vazio/inexistente
+        const dadosSeguros = {
+            ...dadosUsuario,
+            // senha: não incluído propositalmente
+            status: 'inativo', // Inicia inativo até definir senha
+        };
+
+        const data = await this.repository.cadastrar(dadosSeguros);
+
+        // Gera token de recuperação de senha (mesmo fluxo de recuperação)
+        const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(data._id);
+
+        // Define expiração do token (1 hora)
+        const expMs = Date.now() + 60 * 60 * 1000;
+        await this.repository.alterar(data._id, {
+            tokenUnico,
+            exp_tokenUnico_recuperacao: new Date(expMs)
+        });
+
+        // Envia email com link para criar senha
+        await enviarEmail(emailDeBoasVindas({
+            email: data.email,
+            nome: data.nome,
+            token: tokenUnico
+        }));
+
+        return data;
+    }
+
+    async cadastrarAdminPadrao(dadosUsuario) {
         await this.validateEmail(dadosUsuario.email);
 
         // Aplica o Hash da senha ao cadastrar
@@ -28,9 +60,7 @@ class UsuarioService {
         };
 
         const data = await this.repository.cadastrar(dadosSeguros);
-        
-        await enviarEmail(emailDeBoasVindas(data));
-        
+
         return data;
     }
 
@@ -259,6 +289,13 @@ class UsuarioService {
             });
         }
         return usuarioExistente;
+    }
+
+    async deletar(id) {
+        if (id) {
+            const data = await this.repository.deletar(id);
+            return data;
+        }
     }
 }
 
