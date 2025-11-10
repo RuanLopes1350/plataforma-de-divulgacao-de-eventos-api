@@ -8,8 +8,8 @@ class Usuario {
             {
                 nome: { type: String, index: true, required: true },
                 email: { type: String, unique: true, index: true, required: true },
-                senha: { type: String, required: true, select: false },
-                admin: { type: Boolean, required: true, default : false },
+                senha: { type: String, required: false, select: false },
+                admin: { type: Boolean, required: true, default: false },
                 status: { type: String, enum: ['ativo', 'inativo'], default: 'ativo' },
                 tokenUnico: { type: String, select: false }, // Token único para validação de email, recuperação de senha e autenticação
                 exp_tokenUnico_recuperacao: { type: Date, select: false }, // Data de expiração do token de recuperação de senha, usado para validar a recuperação de senha do usuário

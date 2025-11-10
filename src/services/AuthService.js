@@ -32,18 +32,8 @@ class AuthService {
     async login(body) {
         // Buscar o usuário pelo email
         const userEncontrado = await this.repository.buscarPorEmail(body.email);
-        if (userEncontrado.status === "inativo") {
-            throw new CustomError({
-                statusCode: 401,
-                errorType: 'unauthorized',
-                field: 'Email',
-                details: [],
-                customMessage: messages.error.unauthorized('Usuário inativo')
-            })
-            return;
-        }
-        if (!userEncontrado) {
 
+        if (!userEncontrado) {
             /**
              * Se o usuário não for encontrado, lança um erro personalizado
              * É importante para bibliotecas de requisições como DIO, Retrofit, Axios, etc. que o 
@@ -59,6 +49,27 @@ class AuthService {
                 details: [],
                 customMessage: messages.error.unauthorized('Senha ou Email')
             });
+        }
+
+        // Verifica se o usuário tem senha cadastrada
+        if (!userEncontrado.senha) {
+            throw new CustomError({
+                statusCode: 401,
+                errorType: 'unauthorized',
+                field: 'Senha',
+                details: [],
+                customMessage: 'Cadastro incompleto. Por favor, acesse o link enviado no seu email para criar sua senha.'
+            });
+        }
+
+        if (userEncontrado.status === "inativo") {
+            throw new CustomError({
+                statusCode: 401,
+                errorType: 'unauthorized',
+                field: 'Email',
+                details: [],
+                customMessage: messages.error.unauthorized('Usuário inativo')
+            })
         }
 
         // Validar a senha

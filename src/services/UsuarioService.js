@@ -15,16 +15,14 @@ class UsuarioService {
         this.TokenUtil = TokenUtil; // Instância do TokenUtil para manipulação de tokens
     }
 
-    // POST /usuario
+    // POST /usuario (Admin cadastra usuário - sem senha)
     async cadastrar(dadosUsuario) {
         await this.validateEmail(dadosUsuario.email);
 
-        // Gera uma senha temporária aleatória (usuário criará a própria senha via email)
-        const senhaTempHash = await bcrypt.hash(Math.random().toString(36), 10);
-
+        // NÃO define senha - campo ficará vazio/inexistente
         const dadosSeguros = {
             ...dadosUsuario,
-            senha: senhaTempHash,
+            // senha: não incluído propositalmente
             status: 'inativo', // Inicia inativo até definir senha
         };
 
