@@ -25,7 +25,9 @@ router
     .get("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id/qrcode", AuthMiddleware, asyncWrapper(eventoController.gerarQRCode.bind(eventoController)))
     .patch("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.alterar.bind(eventoController)))
+    .patch("/eventos/:id/organizador", AuthMiddleware, asyncWrapper(eventoController.alterarOrganizador.bind(eventoController)))
     .post("/eventos/:id/compartilhar", AuthMiddleware, asyncWrapper(eventoController.compartilharPermissao.bind(eventoController)))
+    .delete("/eventos/:id/compartilhar/:usuarioId", AuthMiddleware, asyncWrapper(eventoController.removerCompartilhamento.bind(eventoController)))
     .delete("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.deletar.bind(eventoController)))
 
     // Rotas Adicionais (Mídias)
