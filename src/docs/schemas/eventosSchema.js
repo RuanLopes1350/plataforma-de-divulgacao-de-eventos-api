@@ -469,21 +469,9 @@ const eventosSchemas = {
         format: "email",
         description: "Email do usuário para compartilhar permissão",
         example: "usuario@exemplo.com"
-      },
-      permissao: {
-        type: "string",
-        enum: ["editar"],
-        description: "Tipo de permissão",
-        example: "editar"
-      },
-      expiraEm: {
-        type: "string",
-        format: "date-time",
-        description: "Data de expiração da permissão",
-        example: "2025-12-31T23:59:59.000Z"
       }
     },
-    required: ["email", "expiraEm"]
+    required: ["email"]
   },
   // Schemas adicionais necessários para resolver os erros do Swagger
   EventoCadastro: {

@@ -975,11 +975,11 @@ const eventosPath = {
       - Usuário deve estar autenticado
       - Apenas o organizador do evento pode compartilhar permissões
       - Email do usuário colaborador deve ser válido (conter @)
-      - Permissão padrão é 'editar' se não especificada
-      - Data de expiração deve ser futura
-      - Permissão permite que o usuário colaborador edite o evento
+      - Permissão é automaticamente definida como 'editar'
+      - Permissão não expira (tempo indeterminado)
+      - Colaborador pode editar o evento indefinidamente
       - Colaborador não pode alterar o organizador original
-      - Permissão expira automaticamente na data especificada`,
+      - Apenas o organizador pode remover a permissão`,
       "security": [
         {
           "bearerAuth": []
@@ -1020,10 +1020,20 @@ const eventosPath = {
                     "statusCode": 200,
                     "message": "Permissão compartilhada com sucesso!",
                     "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8",
-                      "email": "usuario@exemplo.com",
-                      "permissao": "editar",
-                      "expiraEm": "2024-02-01T00:00:00.000Z"
+                      "message": "Permissão compartilhada com sucesso.",
+                      "evento": {
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                        "titulo": "Workshop de Node.js",
+                        "permissoes": [
+                          {
+                            "usuario": "60b5f8c8d8f8f8f8f8f8f9",
+                            "nome": "Maria Silva",
+                            "email": "usuario@exemplo.com",
+                            "permissao": "editar",
+                            "expiraEm": null
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -1047,14 +1057,6 @@ const eventosPath = {
                     "details": []
                   }
                 },
-                "data_invalida": {
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "Data de expiração deve ser futura.",
-                    "details": []
-                  }
-                },
                 "compartilhar_consigo_mesmo": {
                   "value": {
                     "statusCode": 400,
@@ -1075,7 +1077,7 @@ const eventosPath = {
                   "value": {
                     "statusCode": 409,
                     "error": "Conflito de recurso",
-                    "message": "Usuário usuario@exemplo.com já possui permissão ativa para este evento.",
+                    "message": "Usuário usuario@exemplo.com já possui permissão para este evento.",
                     "details": []
                   }
                 }
@@ -1136,6 +1138,194 @@ const eventosPath = {
                     "statusCode": 404,
                     "error": "Recurso não encontrado",
                     "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/eventos/{id}/compartilhar/{usuarioId}": {
+    "delete": {
+      "tags": ["Eventos"],
+      "summary": "Remover permissão compartilhada de evento",
+      "description": `**ROTA PROTEGIDA** - Remove a permissão de edição compartilhada de um evento para um usuário específico. Revoga o acesso de colaboração.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas o organizador original do evento pode remover permissões
+      - Não é possível remover permissões que não existem
+      - ID do evento e ID do usuário devem ser ObjectIds válidos
+      - Operação remove todas as permissões (ativas e expiradas) do usuário especificado
+      - Usuário perde imediatamente o acesso de edição ao evento`,
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID do evento",
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          }
+        },
+        {
+          "name": "usuarioId",
+          "in": "path",
+          "required": true,
+          "description": "ID do usuário cuja permissão será removida",
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Permissão removida com sucesso",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuccessResponse"
+              },
+              "examples": {
+                "sucesso": {
+                  "value": {
+                    "statusCode": 200,
+                    "message": "Permissão removida com sucesso!",
+                    "data": {
+                      "message": "Permissão removida com sucesso.",
+                      "evento": {
+                        "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                        "titulo": "Workshop de Node.js",
+                        "descricao": "Aprenda Node.js do zero ao avançado",
+                        "organizador": {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
+                          "nome": "João Silva"
+                        },
+                        "permissoes": []
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "ID inválido",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "id_invalido": {
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID inválido fornecido",
+                    "details": [
+                      {
+                        "field": "id",
+                        "message": "Deve ser um ObjectId válido do MongoDB"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "Acesso negado - Apenas o proprietário pode remover permissões",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "acesso_negado": {
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Apenas o proprietário do evento pode realizar esta operação.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Evento ou permissão não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                },
+                "permissao_nao_encontrada": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Permissão não encontrada para este usuário.",
                     "details": []
                   }
                 }

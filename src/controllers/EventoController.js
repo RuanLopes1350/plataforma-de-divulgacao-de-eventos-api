@@ -94,11 +94,24 @@ class EventoController {
         objectIdSchema.parse(id);
 
         // Validação de entrada (formato) com Zod
-        const { email, permissao, expiraEm } = await CompartilharPermissaoSchema.parseAsync(req.body);
+        const { email } = await CompartilharPermissaoSchema.parseAsync(req.body);
 
-        const data = await this.service.compartilharPermissao(id, email, permissao, expiraEm, usuarioLogado._id);
+        const data = await this.service.compartilharPermissao(id, email, usuarioLogado._id);
 
         return CommonResponse.success(res, data, 200, 'Permissão compartilhada com sucesso!');
+    }
+
+    // DELETE /eventos/:id/compartilhar/:usuarioId
+    async removerCompartilhamento(req, res) {
+        const { id, usuarioId } = req.params;
+        const usuarioLogado = req.user;
+
+        objectIdSchema.parse(id);
+        objectIdSchema.parse(usuarioId);
+
+        const data = await this.service.removerCompartilhamento(id, usuarioId, usuarioLogado._id);
+
+        return CommonResponse.success(res, data, 200, 'Permissão removida com sucesso!');
     }
 
     // DELETE /eventos/:id
