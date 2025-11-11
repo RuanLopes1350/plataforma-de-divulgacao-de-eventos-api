@@ -105,6 +105,32 @@ class UsuarioController {
     return CommonResponse.success(res, data, 200, `Status do usuário atualizado para ${status}.`);
   }
 
+  async alterarAdmin(req, res) {
+    const { id } = req.params;
+    objectIdSchema.parse(id);
+    console.log(req.body);
+
+    const { admin } = req.body;
+    console.log(admin);
+    // Validação: verifica se o body existe e contém o campo admin
+    if (!req.body || !('admin' in req.body)) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'admin',
+        details: [{ path: 'admin', message: 'O campo "admin" é obrigatório no corpo da requisição.' }],
+        customMessage: 'O campo "admin" é obrigatório no corpo da requisição.'
+      });
+    }
+
+
+
+    const data = await this.service.alterarAdmin(id, admin);
+
+    if (admin === true) return CommonResponse.success(res, data, 200, `Usuário atualizado para Administrador!`);
+    if (admin === false) return CommonResponse.success(res, data, 200, `Usuário retirado como Administrador!`);
+  }
+
   async deletar(req, res) {
     const { id } = req.params;
 

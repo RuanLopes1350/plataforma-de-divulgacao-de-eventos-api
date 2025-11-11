@@ -254,6 +254,22 @@ class UsuarioService {
         return data;
     }
 
+    async alterarAdmin(id, admin) {
+        await this.ensureUserExists(id);
+
+        if (![true, false].includes(admin)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'admin',
+                customMessage: 'Valor inválido. Use "true" ou "false".',
+            });
+        }
+
+        const data = await this.repository.alterar(id, { admin });
+        return data;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // MÉTODOS AUXILIARES
     ////////////////////////////////////////////////////////////////////////////////

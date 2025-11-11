@@ -30,7 +30,7 @@ const AdminMiddleware = (req, res, next) => {
         // Usuário é admin, pode prosseguir
         next();
     } catch (error) {
-        next(error);
+        return next(error);
     }
 };
 
