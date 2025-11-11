@@ -22,7 +22,7 @@ class EventoService {
         }
 
         const data = await this.repository.cadastrar(dadosEvento);
-        return data
+        return data;
     }
 
     // GET /eventos && GET /eventos/:id
@@ -56,10 +56,11 @@ class EventoService {
     }
 
     // PATCH /eventos/:id
-    async alterar(id, parsedData, usuarioId) {
+    async alterar(id, parsedData, usuario) {
         const evento = await this.ensureEventExists(id);
 
-        await this.ensureUserIsOwner(evento, usuarioId, false);
+        await this.ensureUserIsOwner(evento, usuario, false);
+
         // Se houver tags novas no parsedData, normalize e una com as tags existentes
         if (parsedData.tags) {
             const incoming = this.normalizeTags(parsedData.tags);
@@ -71,14 +72,37 @@ class EventoService {
         return data;
     }
 
-    // PATCH /eventos/:id/compartilhar
-    async compartilharPermissao(eventoId, email, usuarioId) {
-        const evento = await this.ensureEventExists(eventoId);
+    // PATCH /eventos/:id/organizador
+    async alterarOrganizador(id, novoOrganizadorId, usuario) {
+        const evento = await this.ensureEventExists(id);
 
-        await this.ensureUserIsOwner(evento, usuarioId, true);
+        await this.ensureUserIsOwner(evento, usuario, false);
+
+        const usuarioDestino = await this.usuarioRepository.listarPorId(novoOrganizadorId);
+
+        const filtro = { _id: id };
+        const update = {
+            $set: {
+                organizador: {
+                    _id: usuarioDestino._id,
+                    nome: usuarioDestino.nome,
+                }
+            }
+        };
+
+        const data = await this.repository.model.updateOne(filtro, update);
+        return data;
+    }
+
+    // PATCH /eventos/:id/compartilhar
+    async compartilharPermissao(eventoId, email, usuario) {
+        const evento = await this.ensureEventExists(eventoId);
+        const usuarioId = usuario._id;
+
+        await this.ensureUserIsOwner(evento, usuario, true);
 
         const usuarioDestino = await this.usuarioRepository.buscarPorEmail(email);
-        const usuarioDono = await this.usuarioRepository.listarPorId(usuarioId);
+        const usuarioDono = usuario;
 
         if (!usuarioDestino) {
             throw new CustomError({
@@ -155,11 +179,11 @@ class EventoService {
     }
 
     // DELETE /eventos/:id/compartilhar/:usuarioId
-    async removerCompartilhamento(eventoId, usuarioIdRemover, usuarioLogadoId) {
+    async removerCompartilhamento(eventoId, usuarioIdRemover, usuarioLogado) {
         const evento = await this.ensureEventExists(eventoId);
 
         // Apenas o proprietário pode remover compartilhamentos
-        await this.ensureUserIsOwner(evento, usuarioLogadoId, true);
+        await this.ensureUserIsOwner(evento, usuarioLogado, true);
 
         const permissaoExistente = evento.permissoes?.find(p =>
             p.usuario.toString() === usuarioIdRemover
@@ -190,10 +214,10 @@ class EventoService {
     }
 
     // DELETE /eventos/:id
-    async deletar(id, usuarioId) {
+    async deletar(id, usuario) {
         const evento = await this.ensureEventExists(id);
 
-        await this.ensureUserIsOwner(evento, usuarioId, true);
+        await this.ensureUserIsOwner(evento, usuario, true);
 
         const { default: UploadService } = await import('./UploadService.js');
         new UploadService().limparMidiasDoEvento(evento);
@@ -270,7 +294,6 @@ class EventoService {
         return result;
     }
 
-
     /**
      * Garante que o evento existe.
      */
@@ -290,11 +313,20 @@ class EventoService {
         return evento;
     }
 
+    /**
+     * Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
+     */
+    async ensureUserIsOwner(evento, usuario, ownerOnly = false) {
+        const usuarioId = usuario._id;
+        const usuarioObj = usuario;
 
-    // Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
-    async ensureUserIsOwner(evento, usuarioId, ownerOnly = false) {
-        // Se for o dono, permite sempre as requisições
-        if (evento.organizador._id.toString() === usuarioId) {
+        // Se for admin (quando temos o objeto do usuário), permite sempre
+        if (usuarioObj && usuarioObj.admin === true) {
+            return;
+        }
+
+        // Se for o organizador do evento
+        if (usuarioId && evento.organizador && evento.organizador._id && evento.organizador._id.toString() === usuarioId.toString()) {
             return;
         }
 
@@ -312,13 +344,10 @@ class EventoService {
         // Verificação de permissão compartilhada com o usuário
         const agora = new Date();
         const permissaoValida = (evento.permissoes || []).some(permissao => {
-            // Verifica se o usuário tem permissão
-            const usuarioCorreto = permissao.usuario.toString() === usuarioId;
+            const usuarioCorreto = usuarioId && permissao.usuario.toString() === usuarioId.toString();
             const permissaoEditar = permissao.permissao === 'editar';
-            
-            // Se não tem data de expiração (null), a permissão é válida indefinidamente
             const naoExpirou = !permissao.expiraEm || new Date(permissao.expiraEm) > agora;
-            
+
             return usuarioCorreto && permissaoEditar && naoExpirou;
         });
 
@@ -378,7 +407,6 @@ class EventoService {
     async listarTodosEventos(req) {
         return await this.repository.listarTodosEventos(req);
     }
-
 }
 
 export default EventoService;

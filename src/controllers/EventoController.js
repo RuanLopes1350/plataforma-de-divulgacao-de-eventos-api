@@ -81,9 +81,23 @@ class EventoController {
 
         const parseData = EventoUpdateSchema.parse(req.body);
 
-        const data = await this.service.alterar(id, parseData, usuarioLogado._id);
+        const data = await this.service.alterar(id, parseData, usuarioLogado);
 
         return CommonResponse.success(res, data);
+    }
+
+    // PATCH /eventos/:id/
+    async alterarOrganizador(req, res) {
+        const { id } = req.params;
+        const usuarioLogado = req.user;
+
+        objectIdSchema.parse(id);
+
+        const novoOrganizadorId = objectIdSchema.parse(req.body._id);
+
+        const data = await this.service.alterarOrganizador(id, novoOrganizadorId, usuarioLogado);
+
+        return CommonResponse.success(res, data, 200, 'Organizador alterado com sucesso.');
     }
 
     // PATCH /eventos/:id/compartilhar
@@ -96,7 +110,7 @@ class EventoController {
         // Validação de entrada (formato) com Zod
         const { email } = await CompartilharPermissaoSchema.parseAsync(req.body);
 
-        const data = await this.service.compartilharPermissao(id, email, usuarioLogado._id);
+        const data = await this.service.compartilharPermissao(id, email, usuarioLogado);
 
         return CommonResponse.success(res, data, 200, 'Permissão compartilhada com sucesso!');
     }
@@ -109,7 +123,7 @@ class EventoController {
         objectIdSchema.parse(id);
         objectIdSchema.parse(usuarioId);
 
-        const data = await this.service.removerCompartilhamento(id, usuarioId, usuarioLogado._id);
+        const data = await this.service.removerCompartilhamento(id, usuarioId, usuarioLogado);
 
         return CommonResponse.success(res, data, 200, 'Permissão removida com sucesso!');
     }
