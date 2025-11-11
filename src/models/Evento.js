@@ -19,6 +19,14 @@ const permissaoSchema = new mongoose.Schema({
         ref: 'usuarios',
         required: true,
     },
+    nome: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+    },
     permissao: {
         type: String,
         enum: ['editar'],

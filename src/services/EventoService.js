@@ -72,7 +72,7 @@ class EventoService {
     }
 
     // PATCH /eventos/:id/compartilhar
-    async compartilharPermissao(eventoId, email, permissao, expiraEm, usuarioId) {
+    async compartilharPermissao(eventoId, email, usuarioId) {
         const evento = await this.ensureEventExists(eventoId);
 
         await this.ensureUserIsOwner(evento, usuarioId, true);
@@ -101,8 +101,7 @@ class EventoService {
         }
 
         const permissaoExistente = evento.permissoes?.find(p =>
-            p.usuario.toString() === usuarioDestino._id.toString() &&
-            new Date(p.expiraEm) > new Date()
+            p.usuario.toString() === usuarioDestino._id.toString()
         );
 
         if (permissaoExistente) {
@@ -111,16 +110,21 @@ class EventoService {
                 errorType: 'duplicateResource',
                 field: 'permissao',
                 details: [],
-                customMessage: `Usuário ${email} já possui permissão ativa para este evento.`
+                customMessage: `Usuário ${email} já possui permissão para este evento.`
             });
         }
 
-        // Adicionar ou atualizar permissão
+        // Adicionar permissão com valores padrão
+        const permissao = 'editar';
+        const expiraEm = null; // Sem data de expiração (tempo indeterminado)
+
         const filtro = { _id: eventoId };
         const update = {
             $push: {
                 permissoes: {
                     usuario: usuarioDestino._id,
+                    nome: usuarioDestino.nome,
+                    email: usuarioDestino.email,
                     permissao,
                     expiraEm
                 }
@@ -147,7 +151,42 @@ class EventoService {
         await enviarEmail(emailCompartilhamento(emailDataDestino));
 
         const eventoAtualizado = await this.repository.listarPorId(eventoId);
-        return { message: 'Permissão compartilhada com sucesso.', evento: eventoAtualizado };
+        return eventoAtualizado;
+    }
+
+    // DELETE /eventos/:id/compartilhar/:usuarioId
+    async removerCompartilhamento(eventoId, usuarioIdRemover, usuarioLogadoId) {
+        const evento = await this.ensureEventExists(eventoId);
+
+        // Apenas o proprietário pode remover compartilhamentos
+        await this.ensureUserIsOwner(evento, usuarioLogadoId, true);
+
+        const permissaoExistente = evento.permissoes?.find(p =>
+            p.usuario.toString() === usuarioIdRemover
+        );
+
+        if (!permissaoExistente) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'permissao',
+                details: [],
+                customMessage: 'Permissão não encontrada para este usuário.'
+            });
+        }
+
+        // Remover permissão
+        const filtro = { _id: eventoId };
+        const update = {
+            $pull: {
+                permissoes: { usuario: usuarioIdRemover }
+            }
+        };
+
+        await this.repository.model.updateOne(filtro, update);
+
+        const eventoAtualizado = await this.repository.listarPorId(eventoId);
+        return eventoAtualizado;
     }
 
     // DELETE /eventos/:id
@@ -272,11 +311,16 @@ class EventoService {
 
         // Verificação de permissão compartilhada com o usuário
         const agora = new Date();
-        const permissaoValida = (evento.permissoes || []).some(permissao =>
-            permissao.usuario.toString() === usuarioId &&
-            permissao.permissao === 'editar' &&
-            new Date(permissao.expiraEm) > agora
-        );
+        const permissaoValida = (evento.permissoes || []).some(permissao => {
+            // Verifica se o usuário tem permissão
+            const usuarioCorreto = permissao.usuario.toString() === usuarioId;
+            const permissaoEditar = permissao.permissao === 'editar';
+            
+            // Se não tem data de expiração (null), a permissão é válida indefinidamente
+            const naoExpirou = !permissao.expiraEm || new Date(permissao.expiraEm) > agora;
+            
+            return usuarioCorreto && permissaoEditar && naoExpirou;
+        });
 
         if (permissaoValida) {
             return;

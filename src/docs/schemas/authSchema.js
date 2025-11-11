@@ -31,12 +31,12 @@ const authSchemas = {
         type: "string", 
         format: "email",
         description: "Email do usuário",
-        example: "devMaster@gmail.com"
+        example: "admin@admin.com"
       },
       senha: { 
         type: "string", 
         description: "Senha do usuário",
-        example: "ABab@123456"
+        example: "admin"
       }
     },
     required: ["email", "senha"]
