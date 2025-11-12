@@ -58,7 +58,7 @@ class UploadController {
         const resultado = await this.service.adicionarMultiplasMidias(
             eventoId, 
             validatedFiles, 
-            usuarioLogado._id
+            usuarioLogado
         );
 
         const mensagem = `${resultado.totalSucesso} de ${resultado.totalProcessados} arquivo(s) adicionado(s) com sucesso.`;

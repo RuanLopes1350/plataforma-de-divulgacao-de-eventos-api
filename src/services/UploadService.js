@@ -24,7 +24,7 @@ class UploadService {
     }
 
     // POST /eventos/:id/midias (múltiplas mídias)
-    async adicionarMultiplasMidias(eventoId, files, usuarioId) {
+    async adicionarMultiplasMidias(eventoId, files, usuario) {
         console.log("Estou no adicionarMultiplasMidias em UploadService");
         objectIdSchema.parse(eventoId);
 
@@ -36,7 +36,7 @@ class UploadService {
         }
 
         const evento = await this.eventoService.ensureEventExists(eventoId);
-        await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
+        await this.eventoService.ensureUserIsOwner(evento, usuario, false);
 
         const novasMidias = [];
         const resultadosUpload = [];
