@@ -135,7 +135,7 @@ class EventoController {
 
         objectIdSchema.parse(id);
 
-        const data = await this.service.deletar(id, usuarioLogado._id);
+        const data = await this.service.deletar(id, usuarioLogado);
 
         return CommonResponse.success(res, { message: messages.validation.generic.resourceDeleted('Evento'), data });
     }
