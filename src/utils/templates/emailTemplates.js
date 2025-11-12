@@ -2,19 +2,34 @@ import "dotenv/config";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
+const LOGO_BRANCA_URL = "https://i.imgur.com/pHjP2qy.png";
+const COR_PRIMARIA = "#4338CA";
+
 export const emailDeBoasVindas = (data) => ({
   to: data.email,
-  subject: "Bem-vindo ao IFRO Events!",
-  template: "bemvindo",
+  subject: "Bem-vindo(a) ao IFRO Events!",
+  template: "generico",
   data: {
+    // --- Header ---
+    mostrarHeader: true,
+    logoUrl: LOGO_BRANCA_URL,
+    corPrimaria: COR_PRIMARIA,
+    nomeSistema: "IFRO Events",
+
+    // --- Conteúdo ---
+    titulo: "Bem-vindo(a) ao IFRO Events!",
     nome: data.nome,
-    logoUrl: "https://i.imgur.com/pHjP2qy.png",
-    mensagem: "Bem-Vindo ao IFRO Events! Estamos felizes em tê-lo conosco. \nVocê foi cadastrado com sucesso em nossa plataforma. Clique no link abaixo para definir sua senha e começar a usar nossos serviços.",
+    mensagem:
+      "Sua conta foi criada com sucesso e estamos felizes em ter você conosco.<br><br>Para seu primeiro acesso, só falta um passo: <strong>definir sua senha para poder acessar a plataforma!</strong>. Clique no botão abaixo para começar.",
+
+    // --- Ação ---
     mostrarBotao: true,
-    textoBotao: "Começar",
-    corPrimaria: "#6C8EAD", //Air Force Blue
+    textoBotao: "Definir minha senha",
     urlBotao: `${FRONTEND_URL}/nova_senha/${data.token}`,
-    corBotao: "#4338CA",
+    corBotao: COR_PRIMARIA,
+
+    // --- Footer ---
+    ano: new Date().getFullYear(),
   }
 });
 
@@ -22,21 +37,30 @@ export const emailDeBoasVindas = (data) => ({
 
 export const emailRecover = (data) => ({
   to: data.email,
-  subject: "Recuperação de Senha - IFRO Events",
+  subject: "Redefinição de Senha - IFRO Events",
   template: "generico",
   data: {
-    logoUrl: "https://i.imgur.com/pHjP2qy.png",
+    // --- Header ---
     mostrarHeader: true,
-    corPrimaria: "#4338CA",
+    logoUrl: LOGO_BRANCA_URL,
+    corPrimaria: COR_PRIMARIA,
+    nomeSistema: "IFRO Events",
+
+    // --- Conteúdo ---
     nome: data.nome,
-    titulo: "Recuperação de Senha",
+    titulo: "Redefina sua senha",
     mensagem:
-      "Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para prosseguir com a recuperação de sua conta.",
-    textoDestaque: "Este link expira em 1 hora.",
+      "Recebemos uma solicitação para redefinir a senha da sua conta.<br><br>Se foi você, clique no botão abaixo para criar uma nova senha. Se você não fez essa solicitação, pode ignorar este e-mail com segurança.",
+    textoDestaque: "Por segurança, este link expira em <strong>1 hora</strong>.",
+
+    // --- Ação ---
     mostrarBotao: true,
-    textoBotao: "Alterar Senha",
+    textoBotao: "Criar nova senha",
     urlBotao: `${FRONTEND_URL}/nova_senha/${data.token}`,
-    corBotao: "#4338CA",
+    corBotao: COR_PRIMARIA,
+
+    // --- Footer ---
+    ano: new Date().getFullYear(),
   },
 });
 
@@ -44,30 +68,57 @@ export const emailRecover = (data) => ({
 
 export const emailCompartilhamentoDono = (data) => ({
   to: data.email,
-  subject: "Compartilhamento de permissão - IFRO Events",
+  subject: "Confirmação de compartilhamento - IFRO Events",
   template: "generico",
   data: {
-    logoUrl: "https://i.imgur.com/pHjP2qy.png",
+    // --- Header ---
     mostrarHeader: true,
-    corPrimaria: "#4338CA",
+    logoUrl: LOGO_BRANCA_URL,
+    corPrimaria: COR_PRIMARIA,
+    nomeSistema: "IFRO Events",
+
+    // --- Conteúdo ---
     nome: data.nomeDono,
-    titulo: "Compartilhamento de permissão",
+    titulo: "Compartilhamento realizado",
+    // NOVO: Usando <strong> para destacar nomes e eventos
     mensagem:
-      `Você concedeu permissões de acesso ao evento "${data.evento}" para ${data.nome}. Caso não tenha realizado essa ação, entre em contato com o suporte.`,
+      `Olá! Você concedeu permissões de acesso ao evento <strong>"${data.evento}"</strong> para o usuário <strong>${data.nome}</strong>.<br><br>Caso não reconheça esta ação, recomendamos que altere sua senha e entre em contato com o suporte.`,
+
+    // --- Ação ---
+    mostrarBotao: true,
+    textoBotao: "Ver evento",
+    urlBotao: `${FRONTEND_URL}/meus-eventos/${data.eventoId}`, // Você precisará passar o 'eventoId'
+    corBotao: COR_PRIMARIA,
+
+    // --- Footer ---
+    ano: new Date().getFullYear(),
   },
 });
 
 export const emailCompartilhamento = (data) => ({
   to: data.email,
-  subject: "Compartilhamento de permissão - IFRO Events",
+  subject: "Você recebeu acesso a um evento no IFRO Events",
   template: "generico",
   data: {
-    logoUrl: "https://i.imgur.com/pHjP2qy.png",
+    // --- Header ---
     mostrarHeader: true,
-    corPrimaria: "#4338CA",
+    logoUrl: LOGO_BRANCA_URL,
+    corPrimaria: COR_PRIMARIA,
+    nomeSistema: "IFRO Events",
+
+    // --- Conteúdo ---
     nome: data.nome,
-    titulo: "Compartilhamento de permissão",
+    titulo: "Você foi convidado!",
     mensagem:
-      `Você recebeu permissões de acesso ao evento "${data.evento}" concedidas por ${data.nomeDono}. Caso não reconheça essa ação, entre em contato com o suporte.`,
+      `Boas notícias! <strong>${data.nomeDono}</strong> compartilhou o evento <strong>"${data.evento}"</strong> com você.<br><br>Agora você pode acessar os detalhes e gerenciar o evento diretamente na plataforma clicando no botão abaixo.`,
+
+    // --- Ação ---
+    mostrarBotao: true,
+    textoBotao: "Acessar o evento",
+    urlBotao: `${FRONTEND_URL}/eventos/${data.eventoId}`, // Você precisará passar o 'eventoId'
+    corBotao: COR_PRIMARIA,
+
+    // --- Footer ---
+    ano: new Date().getFullYear(),
   },
 });
