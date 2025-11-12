@@ -5,6 +5,17 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const LOGO_BRANCA_URL = "https://i.imgur.com/pHjP2qy.png";
 const COR_PRIMARIA = "#4338CA";
 
+const LINK_LUIS = "https://www.linkedin.com/in/luis-felipe-lopes-638712331/";
+const LINK_RUAN = "https://www.linkedin.com/in/ruan-lopes-1350s";
+const LINK_EDUARDO = "https://www.linkedin.com/in/eduardotartas/";
+const FOOTER_HTML = `
+  Plataforma desenvolvida pelos alunos de ADS do IFRO Campus Vilhena.
+  <br>
+  <a href="${LINK_LUIS}" style="color: #4338CA; text-decoration: none;">Luis Felipe Lopes</a> - 
+  <a href="${LINK_RUAN}" style="color: #4338CA; text-decoration: none;">Ruan de Oliveira Lopes</a> - 
+  <a href="${LINK_EDUARDO}" style="color: #4338CA; text-decoration: none;">Eduardo Tartas</a>
+`;
+
 export const emailDeBoasVindas = (data) => ({
   to: data.email,
   subject: "Bem-vindo(a) ao IFRO Events!",
@@ -15,6 +26,7 @@ export const emailDeBoasVindas = (data) => ({
     logoUrl: LOGO_BRANCA_URL,
     corPrimaria: COR_PRIMARIA,
     nomeSistema: "IFRO Events",
+    mostrarDivisor: true,
 
     // --- Conteúdo ---
     titulo: "Bem-vindo(a) ao IFRO Events!",
@@ -29,7 +41,7 @@ export const emailDeBoasVindas = (data) => ({
     corBotao: COR_PRIMARIA,
 
     // --- Footer ---
-    ano: new Date().getFullYear(),
+    textoFooter: FOOTER_HTML
   }
 });
 
@@ -60,7 +72,7 @@ export const emailRecover = (data) => ({
     corBotao: COR_PRIMARIA,
 
     // --- Footer ---
-    ano: new Date().getFullYear(),
+    textoFooter: FOOTER_HTML
   },
 });
 
@@ -91,7 +103,7 @@ export const emailCompartilhamentoDono = (data) => ({
     corBotao: COR_PRIMARIA,
 
     // --- Footer ---
-    ano: new Date().getFullYear(),
+    textoFooter: FOOTER_HTML
   },
 });
 
@@ -119,6 +131,6 @@ export const emailCompartilhamento = (data) => ({
     corBotao: COR_PRIMARIA,
 
     // --- Footer ---
-    ano: new Date().getFullYear(),
+    textoFooter: FOOTER_HTML
   },
 });
