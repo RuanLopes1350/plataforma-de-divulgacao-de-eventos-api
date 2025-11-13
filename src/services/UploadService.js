@@ -100,12 +100,12 @@ class UploadService {
     
 
     //DELETE /eventos/:id/midia/:tipo/:id
-    async deletarMidia(eventoId, midiaId, usuarioId) {
+    async deletarMidia(eventoId, midiaId, usuario) {
         objectIdSchema.parse(eventoId);
         objectIdSchema.parse(midiaId);
 
         const evento = await this.eventoService.ensureEventExists(eventoId);
-        await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
+        await this.eventoService.ensureUserIsOwner(evento, usuario, false);
 
         // Encontrar a mídia específica no array
         const midiaIndex = evento.midia.findIndex(midia => midia._id.toString() === midiaId);

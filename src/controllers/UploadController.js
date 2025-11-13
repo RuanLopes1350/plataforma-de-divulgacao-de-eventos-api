@@ -81,7 +81,7 @@ class UploadController {
         
         const usuarioLogado = req.user;
 
-        const evento = await this.service.deletarMidia(validatedEventoId, validatedMidiaId, usuarioLogado._id);
+        const evento = await this.service.deletarMidia(validatedEventoId, validatedMidiaId, usuarioLogado);
 
         return CommonResponse.success(res, evento, 200, `Mídia '${validatedMidiaId}' deletada com sucesso.`);
     }
