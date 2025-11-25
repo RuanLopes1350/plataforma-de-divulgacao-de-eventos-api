@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const FRONTEND_URL = process.env.URL_FRONTEND || "http://localhost:3000";
 
 const LOGO_BRANCA_URL = "https://i.imgur.com/pHjP2qy.png";
 const COR_PRIMARIA = "#4338CA";
