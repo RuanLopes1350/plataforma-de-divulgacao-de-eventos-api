@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-ifroevents-pvc
+  labels:
+    app: mongo-ifroevents
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-ifroevents
+  labels:
+    app: mongo-ifroevents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-ifroevents
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mongo-ifroevents
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:8
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+          
+          envFrom:
+            - configMapRef:
+                name: api-ifroevents-env
+          
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+          
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - db.adminCommand('ping')
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - db.adminCommand('ping')
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      
+      restartPolicy: Always
+      
+      volumes:
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: mongo-ifroevents-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-ifroevents
+  labels:
+    app: mongo-ifroevents
+spec:
+  type: ClusterIP
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017
+      protocol: TCP
+  selector:
+    app: mongo-ifroevents

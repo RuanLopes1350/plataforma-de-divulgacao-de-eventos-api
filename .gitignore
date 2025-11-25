@@ -33,6 +33,10 @@ build/
 .env.development
 .env.mailsender
 
+# Kubernetes secrets
+deploy/api-configmap.yaml
+!deploy/api-configmap.example.yaml
+
 # Cache e arquivos temporários
 tmp/
 temp/

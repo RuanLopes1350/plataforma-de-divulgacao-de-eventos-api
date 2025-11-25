@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-ifroevents
+  labels:
+    app: api-ifroevents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-ifroevents
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: api-ifroevents
+    spec:
+      restartPolicy: Always
+      
+      securityContext:
+        fsGroup: 1000
+      
+      containers:
+        - name: api-ifroevents
+          # Ajustar para sua imagem no Docker Hub quando fizer o push
+          # docker build -t <seu-usuario>/api-ifroevents:latest .
+          # docker push <seu-usuario>/api-ifroevents:latest
+          image: eduardotartas/api-ifroevents:latest
+          imagePullPolicy: Always
+          
+          ports:
+            - containerPort: 5015
+              protocol: TCP
+          
+          envFrom:
+            - configMapRef:
+                name: api-ifroevents-env
+          
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          # Liveness Probe - verifica se o container está vivo
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5015
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          
+          # Readiness Probe - verifica se o container está pronto para receber tráfego
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5015
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-ifroevents
+  labels:
+    app: api-ifroevents
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5015
+    protocol: TCP
+  selector:
+    app: api-ifroevents

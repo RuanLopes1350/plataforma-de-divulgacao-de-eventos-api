@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-ifroevents-env
+  labels:
+    app: api-ifroevents
+data:
+  # Banco de Dados
+  DB_URL: "mongodb://<MONGO_USER>:<MONGO_PASSWORD>@mongo-ifroevents:27017/ifro_eventos?authSource=admin"
+  DB_URL_TEST: "mongodb://<MONGO_USER>:<MONGO_PASSWORD>@mongo-ifroevents:27017/ifro_eventos_teste?authSource=admin"
+  
+  # MongoDB Init (usado pelo container do MongoDB)
+  MONGO_INITDB_DATABASE: "ifro_eventos"
+  MONGO_INITDB_ROOT_USERNAME: "<MONGO_USER>"
+  MONGO_INITDB_ROOT_PASSWORD: "<MONGO_PASSWORD>"
+  
+  # Porta
+  API_PORT: "5015"
+  SWAGGER_DEV_URL: "https://<YOUR_API_DOMAIN>"
+  SWAGGER_PROD_URL: "https://<YOUR_API_DOMAIN>"
+  
+  # Desativa documentação do Swagger
+  DISABLE_SWAGGER_AUTO_GENERATE: "false"
+  
+  # Salt dos Tokens
+  SALT_LENGTH: "13"
+  
+  # Mail Service
+  MAIL_API_KEY: "<REPLACE_WITH_MAIL_API_KEY>"
+  URL_MAIL_SERVICE: "https://<YOUR_MAIL_SERVICE>/api/emails/send"
+  
+  # URLs
+  URL_FRONTEND: "https://<YOUR_FRONTEND_DOMAIN>"
+  
+  # JWT Tokens - GERAR EM PRODUÇÃO: openssl rand -base64 48
+  JWT_SECRET_ACCESS_TOKEN: "<REPLACE_WITH_SECURE_VALUE>"
+  JWT_SECRET_REFRESH_TOKEN: "<REPLACE_WITH_SECURE_VALUE>"
+  JWT_SECRET_PASSWORD_RECOVERY: "<REPLACE_WITH_SECURE_VALUE>"
+  JWT_ACCESS_TOKEN_EXPIRATION: "15m"
+  JWT_REFRESH_TOKEN_EXPIRATION: "7d"
+  SINGLE_SESSION_REFRESH_TOKEN: "false"
+  
+  # Ambiente
+  NODE_ENV: "production"
+  
+  # Logs
+  LOG_LEVEL: "info"
+  LOG_MAX_SIZE_GB: "50"
+  LOG_ENABLED: "true"
+  
+  # MinIO
+  MINIO_BUCKET_FOTOS: "<YOUR_MINIO_BUCKET>"
+  MINIO_ACCESS_KEY: "<YOUR_MINIO_ACCESS_KEY>"
+  MINIO_SECRET_KEY: "<YOUR_MINIO_SECRET_KEY>"
+  MINIO_ENDPOINT: "<YOUR_MINIO_ENDPOINT>"
+  MINIO_PORT: "443"
+  MINIO_USE_SSL: "true"
+  
+  # Admin padrão automático do sistema
+  ADMIN_NOME: "Administrador"
+  ADMIN_EMAIL: "admin@admin.com"
+  ADMIN_SENHA: "<REPLACE_WITH_SECURE_PASSWORD>"
