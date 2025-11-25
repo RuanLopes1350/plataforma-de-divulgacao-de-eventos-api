@@ -4,6 +4,7 @@ const FRONTEND_URL = process.env.URL_FRONTEND || "http://localhost:3000";
 
 const LOGO_BRANCA_URL = "https://i.imgur.com/pHjP2qy.png";
 const COR_PRIMARIA = "#4338CA";
+const COR_SECUNDARIA = "#6B46C1";
 
 const LINK_LUIS = "https://www.linkedin.com/in/luis-felipe-lopes-638712331/";
 const LINK_RUAN = "https://www.linkedin.com/in/ruan-lopes-1350s";
@@ -15,6 +16,8 @@ const FOOTER_HTML = `
   <a href="${LINK_RUAN}" style="color: #4338CA; text-decoration: none;">Ruan de Oliveira Lopes</a> - 
   <a href="${LINK_EDUARDO}" style="color: #4338CA; text-decoration: none;">Eduardo Tartas</a>
 `;
+
+let linkSite=process.env.URL_FRONTEND || "http://localhost:3000";
 
 export const emailDeBoasVindas = (data) => ({
   to: data.email,
@@ -39,6 +42,10 @@ export const emailDeBoasVindas = (data) => ({
     textoBotao: "Definir minha senha",
     urlBotao: `${FRONTEND_URL}/nova_senha/${data.token}`,
     corBotao: COR_PRIMARIA,
+    mostrarBotaoSecundario: true,
+    textoBotaoSecundario: "Ir para o IFRO Events",
+    urlBotaoSecundario: FRONTEND_URL,
+    corBotaoSecundario: COR_SECUNDARIA,
 
     // --- Footer ---
     textoFooter: FOOTER_HTML
@@ -64,12 +71,17 @@ export const emailRecover = (data) => ({
     mensagem:
       "Recebemos uma solicitação para redefinir a senha da sua conta.<br><br>Se foi você, clique no botão abaixo para criar uma nova senha. Se você não fez essa solicitação, pode ignorar este e-mail com segurança.",
     textoDestaque: "Por segurança, este link expira em <strong>1 hora</strong>.",
+    textoDestaque: FRONTEND_SITE,
 
     // --- Ação ---
     mostrarBotao: true,
     textoBotao: "Criar nova senha",
     urlBotao: `${FRONTEND_URL}/nova_senha/${data.token}`,
     corBotao: COR_PRIMARIA,
+    mostrarBotaoSecundario: true,
+    textoBotaoSecundario: "Ir para o IFRO Events",
+    urlBotaoSecundario: FRONTEND_URL,
+    corBotaoSecundario: COR_SECUNDARIA,
 
     // --- Footer ---
     textoFooter: FOOTER_HTML
@@ -101,6 +113,10 @@ export const emailCompartilhamentoDono = (data) => ({
     textoBotao: "Ver evento",
     urlBotao: `${FRONTEND_URL}/meus-eventos/${data.eventoId}`, // Você precisará passar o 'eventoId'
     corBotao: COR_PRIMARIA,
+    mostrarBotaoSecundario: true,
+    textoBotaoSecundario: "Ir para o IFRO Events",
+    urlBotaoSecundario: FRONTEND_URL,
+    corBotaoSecundario: COR_SECUNDARIA,
 
     // --- Footer ---
     textoFooter: FOOTER_HTML
@@ -129,6 +145,10 @@ export const emailCompartilhamento = (data) => ({
     textoBotao: "Acessar o evento",
     urlBotao: `${FRONTEND_URL}/eventos/${data.eventoId}`, // Você precisará passar o 'eventoId'
     corBotao: COR_PRIMARIA,
+    mostrarBotaoSecundario: true,
+    textoBotaoSecundario: "Ir para o IFRO Events",
+    urlBotaoSecundario: FRONTEND_URL,
+    corBotaoSecundario: COR_SECUNDARIA,
 
     // --- Footer ---
     textoFooter: FOOTER_HTML
