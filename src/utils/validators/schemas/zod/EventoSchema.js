@@ -181,12 +181,9 @@ const EventoUpdateSchema = z.object({
             message: 'Link inválido'
         }),
     tags: z.array(z.string().min(1, 'Tag não pode ser vazia')).optional(),
-    categoria: z.enum([
-        'academico', 'palestra', 'workshop', 'seminario', 'congresso', 'minicurso',
-        'cultural', 'esportivo', 'social', 'cientifico', 'extensao', 'pesquisa',
-        'feira', 'mostra', 'competicao', 'formatura', 'vestibular', 'enem',
-        'institucional', 'outros'
-    ]).optional(),
+    categoria: z.string()
+            .min(3, 'Categoria deve ter no mínimo 3 caracteres')
+            .max(200, 'Categoria deve ter no máximo 200 caracteres').optional(),
     cor: z.number().int().nonnegative().optional(),
     animacao: z.number().int().nonnegative().optional(),
     status: z.number().int().optional(),
