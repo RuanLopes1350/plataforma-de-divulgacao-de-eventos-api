@@ -29,8 +29,8 @@ const midiaUploadValidationSchema = z.object({
         message: 'O arquivo enviado não é uma mídia válida. Por favor, envie um arquivo de imagem (JPEG, PNG, WebP) ou vídeo (MP4).'
     }),
     buffer: z.instanceof(Buffer, {
-            message: 'O buffer do arquivo é inválido.'
-        })
+        message: 'O buffer do arquivo é inválido.'
+    })
         .refine((buffer) => buffer.length > 0, {
             message: 'O arquivo de mídia não pode estar vazio.'
         }),
@@ -47,76 +47,84 @@ const MidiaSchema = z.object({
 
 // Schema principal do Evento
 const EventoSchema = z.object({
-        titulo: z.string().min(1, 'Campo titulo é obrigatório'),
-        descricao: z.string().min(1, 'Campo descrição é obrigatório'),
-        local: z.string().min(1, 'Campo local é obrigatório'),
-        dataInicio: z.coerce.date({
-            required_error: 'Campo dataInicio é obrigatório'
+    titulo: z.string().min(1, 'Campo titulo é obrigatório'),
+    descricao: z.string().min(1, 'Campo descrição é obrigatório'),
+    local: z.string().min(1, 'Campo local é obrigatório'),
+    dataInicio: z.coerce.date({
+        required_error: 'Campo dataInicio é obrigatório'
+    }),
+    dataFim: z.coerce.date({
+        required_error: 'Campo dataFim é obrigatório'
+    }),
+    exibDia: z.string().min(1, 'Campo exibDia é obrigatório')
+        .refine((val) => {
+            const diasValidos = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+            const dias = val.split(',').map(d => d.trim());
+            return dias.every(dia => diasValidos.includes(dia));
+        }, {
+            message: 'exibDia deve conter dias válidos separados por vírgula (domingo, segunda, terca, quarta, quinta, sexta, sabado)'
         }),
-        dataFim: z.coerce.date({
-            required_error: 'Campo dataFim é obrigatório'
+    exibManha: z.boolean({
+        required_error: 'Campo exibManha é obrigatório',
+        invalid_type_error: 'exibManha deve ser um booleano (true ou false)'
+    }),
+    exibTarde: z.boolean({
+        required_error: 'Campo exibTarde é obrigatório',
+        invalid_type_error: 'exibTarde deve ser um booleano (true ou false)'
+    }),
+    exibNoite: z.boolean({
+        required_error: 'Campo exibNoite é obrigatório',
+        invalid_type_error: 'exibNoite deve ser um booleano (true ou false)'
+    }),
+    exibInicio: z.coerce.date({
+        required_error: 'Campo exibInicio é obrigatório'
+    }),
+    exibFim: z.coerce.date({
+        required_error: 'Campo exibFim é obrigatório'
+    }),
+    link: z.string()
+        .optional()
+        .refine((v) => v === undefined || v === '' || URL_REGEX.test(v), {
+            message: 'Link inválido'
         }),
-        exibDia: z.string().min(1, 'Campo exibDia é obrigatório')
-            .refine((val) => {
-                const diasValidos = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-                const dias = val.split(',').map(d => d.trim());
-                return dias.every(dia => diasValidos.includes(dia));
-            }, {
-                message: 'exibDia deve conter dias válidos separados por vírgula (domingo, segunda, terca, quarta, quinta, sexta, sabado)'
-            }),
-        exibManha: z.boolean({
-            required_error: 'Campo exibManha é obrigatório',
-            invalid_type_error: 'exibManha deve ser um booleano (true ou false)'
+    organizador: z.object({
+        _id: objectIdSchema,
+        nome: z.string().min(1, 'Nome do organizador é obrigatório')
+    }),
+    tags: z.array(z.string().min(1, 'Tag não pode ser vazia'))
+        .optional()
+        .default([])
+        .refine((tags) => !tags || tags.length === 0 || tags.every(tag => tag.trim().length > 0), {
+            message: 'Tags não podem ser vazias'
         }),
-        exibTarde: z.boolean({
-            required_error: 'Campo exibTarde é obrigatório',
-            invalid_type_error: 'exibTarde deve ser um booleano (true ou false)'
-        }),
-        exibNoite: z.boolean({
-            required_error: 'Campo exibNoite é obrigatório',
-            invalid_type_error: 'exibNoite deve ser um booleano (true ou false)'
-        }),
-        exibInicio: z.coerce.date({
-            required_error: 'Campo exibInicio é obrigatório'
-        }),
-        exibFim: z.coerce.date({
-            required_error: 'Campo exibFim é obrigatório'
-        }),
-        link: z.string()
-            .optional()
-            .refine((v) => v === undefined || v === '' || URL_REGEX.test(v), {
-                message: 'Link inválido'
-            }),
-        organizador: z.object({
-            _id: objectIdSchema,
-            nome: z.string().min(1, 'Nome do organizador é obrigatório')
-        }),
-        tags: z.array(z.string().min(1, 'Tag não pode ser vazia'))
-            .optional()
-            .default([])
-            .refine((tags) => !tags || tags.length === 0 || tags.every(tag => tag.trim().length > 0), {
-                message: 'Tags não podem ser vazias'
-            }),
-        categoria: z.string()
-            .min(3, 'Categoria deve ter no mínimo 3 caracteres')
-            .max(200, 'Categoria deve ter no máximo 200 caracteres'),
-        cor: z.number()
-            .int()
-            .nonnegative()
-            .optional(),
-        animacao: z.number()
-            .int()
-            .nonnegative()
-            .optional(),
-        status: z.number()
-            .int()
-            .optional(),
-        midia: z.array(MidiaSchema)
-            .default([])
-            .optional(),
-        qrcode: MidiaSchema
-            .optional(),
-    })
+    categoria: z.string()
+        .min(3, 'Categoria deve ter no mínimo 3 caracteres')
+        .max(200, 'Categoria deve ter no máximo 200 caracteres'),
+    cor: z.number()
+        .int()
+        .nonnegative()
+        .optional(),
+    animacao: z.number()
+        .int()
+        .nonnegative()
+        .optional(),
+    duracao: z.number()
+        .int()
+        .positive('Duração deve ser um número positivo')
+        .optional(),
+    loops: z.number()
+        .int()
+        .positive('Loops deve ser um número positivo')
+        .optional(),
+    status: z.number()
+        .int()
+        .optional(),
+    midia: z.array(MidiaSchema)
+        .default([])
+        .optional(),
+    qrcode: MidiaSchema
+        .optional(),
+})
     .refine((data) => {
         // Validação: dataFim deve ser igual ou posterior a dataInicio
         if (data.dataInicio && data.dataFim) {
@@ -182,10 +190,12 @@ const EventoUpdateSchema = z.object({
         }),
     tags: z.array(z.string().min(1, 'Tag não pode ser vazia')).optional(),
     categoria: z.string()
-            .min(3, 'Categoria deve ter no mínimo 3 caracteres')
-            .max(200, 'Categoria deve ter no máximo 200 caracteres').optional(),
+        .min(3, 'Categoria deve ter no mínimo 3 caracteres')
+        .max(200, 'Categoria deve ter no máximo 200 caracteres').optional(),
     cor: z.number().int().nonnegative().optional(),
     animacao: z.number().int().nonnegative().optional(),
+    duracao: z.number().int().positive('Duração deve ser um número positivo').optional(),
+    loops: z.number().int().positive('Loops deve ser um número positivo').optional(),
     status: z.number().int().optional(),
     midia: z.array(MidiaSchema).optional(),
 }).refine((data) => {
