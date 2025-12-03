@@ -58,10 +58,8 @@ const fakeMappings = {
     }),
     tags: () => [faker.lorem.word(), faker.lorem.word()],
     categoria: () => faker.helpers.arrayElement([
-      'academico', 'palestra', 'workshop', 'seminario', 'congresso', 'minicurso',
-      'cultural', 'esportivo', 'social', 'cientifico', 'extensao', 'pesquisa',
-      'feira', 'mostra', 'competicao', 'formatura', 'vestibular', 'enem',
-      'institucional', 'outros'
+      'empreendedorismo - Inovacao', 'artistico - Cultural', 'cientifico - Tecnologico', 'desportivos', 'palestra', 'workshops',
+      'atividades - Sociais', 'gestao - Pessoas', 'outro'
     ]),
     cor: () => faker.number.int({ min: 1, max: 9 }),
     animacao: () => faker.number.int({ min: 1, max: 10 }),

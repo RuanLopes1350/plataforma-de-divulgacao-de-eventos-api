@@ -21,18 +21,6 @@ services:
   #     - API_PORT=5015
   #     - SWAGGER_DEV_URL=http://localhost:5015
 
-  #    depends_on:
-  #      - mongo
-  # mailsender:
-  #   image: ruanlopes1350/mailsender:latest
-  #   ports:
-  #     - "5016:5016"
-  #   env_file:
-  #     - .env.mailsender
-  #   restart: always
-  #   depends_on:
-  #     - api
-
   # frontend:
   #   container_name: eventos-front
   #   build:
