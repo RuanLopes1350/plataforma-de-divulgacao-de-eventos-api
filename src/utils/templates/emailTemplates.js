@@ -71,7 +71,6 @@ export const emailRecover = (data) => ({
     mensagem:
       "Recebemos uma solicitação para redefinir a senha da sua conta.<br><br>Se foi você, clique no botão abaixo para criar uma nova senha. Se você não fez essa solicitação, pode ignorar este e-mail com segurança.",
     textoDestaque: "Por segurança, este link expira em <strong>1 hora</strong>.",
-    textoDestaque: FRONTEND_SITE,
 
     // --- Ação ---
     mostrarBotao: true,

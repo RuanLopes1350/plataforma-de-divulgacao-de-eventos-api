@@ -29,7 +29,7 @@ spec:
           # Ajustar para sua imagem no Docker Hub quando fizer o push
           # docker build -t <seu-usuario>/api-ifroevents:latest .
           # docker push <seu-usuario>/api-ifroevents:latest
-          image: eduardotartas/api-ifroevents:latest
+          image: ruanlopes1350/api-ifroevents:latest
           imagePullPolicy: Always
           
           ports:
