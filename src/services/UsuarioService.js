@@ -256,7 +256,17 @@ class UsuarioService {
     }
 
     async alterarAdmin(id, admin) {
-        await this.ensureUserExists(id);
+        const usuario = await this.ensureUserExists(id);
+
+        if(usuario.email === emailPadrao && usuario.nome === nomePadrao) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'forbidden',
+                field: 'id',
+                details: [],
+                customMessage: 'Não é permitido alterar o status de administrador do usuário padrão.',
+            });
+        }
 
         if (![true, false].includes(admin)) {
             throw new CustomError({
