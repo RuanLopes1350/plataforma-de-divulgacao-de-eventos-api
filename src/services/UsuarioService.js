@@ -240,7 +240,17 @@ class UsuarioService {
      * Atualiza o status de um usuário e ao fazer "exclusão" apenas inativa, para dependência de eventos.
      */
     async alterarStatus(id, status) {
-        await this.ensureUserExists(id);
+        const usuario = await this.ensureUserExists(id);
+
+        if (usuario.email === emailPadrao && usuario.nome === nomePadrao) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'forbidden',
+                field: 'id',
+                details: [],
+                customMessage: 'Não é permitido alterar o status do usuário padrão.',
+            });
+        }
 
         if (!['ativo', 'inativo'].includes(status)) {
             throw new CustomError({
