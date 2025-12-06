@@ -23,9 +23,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Admin padrão
-const nomePadrao = process.env.ADMIN_NOME
-const emailPadrao = process.env.ADMIN_EMAIL
-const senhaPadrao = process.env.ADMIN_SENHA
+export const nomePadrao = process.env.ADMIN_NOME
+export const emailPadrao = process.env.ADMIN_EMAIL
+export const senhaPadrao = process.env.ADMIN_SENHA
 
 const adminPadrao = {
   nome: nomePadrao,
