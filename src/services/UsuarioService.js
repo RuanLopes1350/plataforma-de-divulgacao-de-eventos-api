@@ -8,6 +8,7 @@ import { emailDeBoasVindas } from "../utils/templates/emailTemplates.js";
 import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
 import { enviarEmail } from "../utils/mailClient.js";
+import { nomePadrao, emailPadrao } from "../app.js";
 
 class UsuarioService {
     constructor() {
@@ -308,6 +309,19 @@ class UsuarioService {
     }
 
     async deletar(id) {
+        // função para verificar se o usuário é o admin padrão e impedir a exclusão
+        const usuario = await this.ensureUserExists(id);
+
+        if (usuario.email === emailPadrao && usuario.nome === nomePadrao) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'forbidden',
+                field: 'id',
+                details: [],
+                customMessage: 'Este usuário é o administrador padrão e não pode ser deletado.',
+            });
+        }
+
         if (id) {
             const data = await this.repository.deletar(id);
             return data;
