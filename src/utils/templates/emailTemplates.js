@@ -35,8 +35,9 @@ export const emailDeBoasVindas = (data) => ({
     titulo: "Bem-vindo(a) ao IFRO Events!",
     nome: data.nome,
     mensagem:
-      "Sua conta foi criada com sucesso e estamos felizes em ter você conosco.<br><br>Para seu primeiro acesso, só falta um passo: <strong>definir sua senha para poder acessar a plataforma!</strong>. Clique no botão abaixo para começar.",
-
+      "Olá, você foi cadastrado na plataforma <strong>IFRO Events</strong> <br><br>Para seu primeiro acesso, só falta um passo: <strong>definir sua senha para poder acessar a plataforma!</strong>. Clique no botão abaixo para começar.",
+    infoAdicional:
+      "Utilize o botão abaixo para definir sua senha dentro de 1 hora. Após esse período, o link expirará e você precisará ser re-cadastrado. <>br><br>Se você não solicitou este e-mail, por favor, ignore-o.",
     // --- Ação ---
     mostrarBotao: true,
     textoBotao: "Definir minha senha",
