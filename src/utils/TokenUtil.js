@@ -48,7 +48,7 @@ class TokenUtil {
       jwt.sign(
         { id },
         process.env.JWT_SECRET_PASSWORD_RECOVERY,
-        { expiresIn: process.env.JWT_PASSWORD_RECOVERY_EXPIRATION || '30m' },
+        { expiresIn: process.env.JWT_PASSWORD_RECOVERY_EXPIRATION || '1h' },
         (err, token) => {
           if (err) {
             return reject(err);
