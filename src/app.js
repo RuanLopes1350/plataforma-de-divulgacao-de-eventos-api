@@ -77,4 +77,7 @@ process.on('uncaughtException', (error) => {
 /* ───────────── 6. Middleware central de erros ───────────── */
 app.use(errorHandler);
 
+/* ───────────── 7. Inicializar Cron Jobs ───────────── */
+import './utils/cron-jobs/limparUsuariosSemSenha.js';
+
 export default app;
