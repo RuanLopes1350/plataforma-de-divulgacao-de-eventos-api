@@ -199,7 +199,9 @@ class UploadService {
 
         // Gerar URL pública do arquivo
         const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
-        const publicUrl = `${protocol}://${process.env.MINIO_ENDPOINT}/${bucket}/${targetName}`;
+        const local = process.env.MINIO_LOCAL === 'true';
+        const endpoint = local ? 'localhost:9000' : process.env.MINIO_ENDPOINT;
+        const publicUrl = `${protocol}://${endpoint}/${bucket}/${targetName}`;
 
         return {
             bucket,
