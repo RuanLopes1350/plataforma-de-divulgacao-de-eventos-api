@@ -198,10 +198,17 @@ class UploadService {
         }
 
         // Gerar URL pública do arquivo
-        const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
-        const local = process.env.MINIO_LOCAL === 'true';
-        const endpoint = local ? 'localhost:9000' : process.env.MINIO_ENDPOINT;
-        const publicUrl = `${protocol}://${endpoint}/${bucket}/${targetName}`;
+        const publicBaseUrl = process.env.MINIO_PUBLIC_URL;
+        let publicUrl;
+        if (publicBaseUrl) {
+            // GarageHQ / S3 com web endpoint dedicado (ex: https://mural.web.fslab.dev)
+            publicUrl = `${publicBaseUrl}/${targetName}`;
+        } else {
+            // Fallback: monta URL a partir do endpoint S3
+            const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+            const endpoint = process.env.MINIO_LOCAL === 'true' ? 'localhost:9000' : process.env.MINIO_ENDPOINT;
+            publicUrl = `${protocol}://${endpoint}/${bucket}/${targetName}`;
+        }
 
         return {
             bucket,

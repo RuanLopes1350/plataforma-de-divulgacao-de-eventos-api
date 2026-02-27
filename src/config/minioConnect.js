@@ -24,9 +24,11 @@ const minioClient = new Minio.Client({
     useSSL: process.env.MINIO_USE_SSL === 'true',
     accessKey: process.env.MINIO_ACCESS_KEY,
     secretKey: process.env.MINIO_SECRET_KEY,
+    region: 'garage',
+    pathStyle: true,
 });
 
-if (local === 'true') {
+if (local) {
     console.warn('Atenção: O MinIO está configurado para rodar localmente. Certifique-se de que o serviço do MinIO esteja ativo e acessível em localhost:9000.');
 
     //Definir politicas do bucket para acesso público

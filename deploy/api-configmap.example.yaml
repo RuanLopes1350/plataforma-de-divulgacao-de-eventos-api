@@ -15,7 +15,7 @@ data:
   MONGO_INITDB_ROOT_PASSWORD: "<MONGO_PASSWORD>"
   
   # Porta
-  API_PORT: "5015"
+  API_PORT: "3001"
   SWAGGER_DEV_URL: "https://<YOUR_API_DOMAIN>"
   SWAGGER_PROD_URL: "https://<YOUR_API_DOMAIN>"
   
@@ -25,9 +25,10 @@ data:
   # Salt dos Tokens
   SALT_LENGTH: "13"
   
-  # Mail Service
-  MAIL_API_KEY: "<REPLACE_WITH_MAIL_API_KEY>"
-  URL_MAIL_SERVICE: "https://<YOUR_MAIL_SERVICE>/api/emails/send"
+  # Mail Service (Resend)
+  MAIL_API_KEY: "<REPLACE_WITH_RESEND_API_KEY>"
+  MAIL_FROM: "noreply@fslab.dev"
+  URL_MAIL_SERVICE: "https://api.resend.com/emails"
   
   # URLs
   URL_FRONTEND: "https://<YOUR_FRONTEND_DOMAIN>"
@@ -48,13 +49,15 @@ data:
   LOG_MAX_SIZE_GB: "50"
   LOG_ENABLED: "true"
   
-  # MinIO
-  MINIO_BUCKET_FOTOS: "<YOUR_MINIO_BUCKET>"
-  MINIO_ACCESS_KEY: "<YOUR_MINIO_ACCESS_KEY>"
-  MINIO_SECRET_KEY: "<YOUR_MINIO_SECRET_KEY>"
-  MINIO_ENDPOINT: "<YOUR_MINIO_ENDPOINT>"
+  # GarageHQ S3
+  MINIO_BUCKET_FOTOS: "<YOUR_S3_BUCKET>"
+  MINIO_ACCESS_KEY: "<YOUR_S3_ACCESS_KEY>"
+  MINIO_SECRET_KEY: "<YOUR_S3_SECRET_KEY>"
+  MINIO_ENDPOINT: "<YOUR_S3_ENDPOINT>"
   MINIO_PORT: "443"
   MINIO_USE_SSL: "true"
+  MINIO_PUBLIC_URL: "<YOUR_S3_PUBLIC_URL>"
+  MINIO_LOCAL: "false"
   
   # Admin padrão automático do sistema
   ADMIN_NOME: "Administrador"

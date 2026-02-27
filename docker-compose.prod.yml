@@ -1,0 +1,66 @@
+# docker-compose.prod.yml
+# Este arquivo deve ficar no servidor (VM).
+#
+# Estrutura de arquivos no servidor:
+#   /opt/ifroevents/
+#   ├── docker-compose.prod.yml
+#   ├── .env           (variáveis do backend)
+#   └── .env.local     (variáveis do frontend)
+#
+# Suba com: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: eventos-mongodb
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --quiet --logpath /dev/null
+    restart: always
+    networks:
+      - mynet
+
+  api:
+    image: ruanlopes1350/ifroevents-api:latest
+    container_name: eventos-api
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      # Sobrescreve valores do .env para produção Docker
+      - DB_URL=mongodb://eventos-mongodb:27017/ifro_eventos
+      - NODE_ENV=production
+      - URL_FRONTEND=https://mural.fslab.dev/
+      - SWAGGER_PROD_URL=https://api.mural.fslab.dev
+    restart: always
+    depends_on:
+      - mongo
+    networks:
+      - mynet
+
+  frontend:
+    image: ruanlopes1350/ifroevents-front:latest
+    container_name: eventos-front
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      # Sobrescreve valores do .env.local para produção Docker
+      - NEXT_PUBLIC_API_URL=https://api.mural.fslab.dev
+      - API_URL_SERVER_SIDED=http://eventos-api:3001
+      - NEXTAUTH_URL=https://mural.fslab.dev
+      - NEXT_PUBLIC_AMBIENTE=production
+    restart: always
+    depends_on:
+      - api
+    networks:
+      - mynet
+
+networks:
+  mynet:
+    driver: bridge
+
+volumes:
+  mongo-data:
