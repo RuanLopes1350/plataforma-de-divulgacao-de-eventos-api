@@ -14,8 +14,6 @@ import {
 } from '../utils/helpers/index.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
-import { da } from '@faker-js/faker';
 
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFile);

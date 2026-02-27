@@ -48,7 +48,6 @@ try {
 // Servir arquivos estáticos da pasta uploads
 import path from 'path';
 import UsuarioController from './controllers/UsuarioController.js';
-import { tr } from '@faker-js/faker';
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 /* ───────────── 3. Rotas ───────────── */
