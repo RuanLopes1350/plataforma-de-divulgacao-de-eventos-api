@@ -1,6 +1,17 @@
 // utils/schemaUtils.js
 import mongoose from 'mongoose';
-import getGlobalFakeMapping from '../../seeds/globalFakeMapping.js';
+
+// Lazy-load do globalFakeMapping para evitar carregar @faker-js/faker em produção
+// caso o pacote não esteja instalado (devDependency)
+let _mappingPromise = null;
+async function getFakeMapping() {
+  if (!_mappingPromise) {
+    _mappingPromise = import('../../seeds/globalFakeMapping.js')
+      .then(mod => mod.default())
+      .catch(() => ({})); // Retorna mapping vazio se faker não estiver disponível
+  }
+  return _mappingPromise;
+}
 
 /**
  * Realiza uma cópia profunda do objeto.
@@ -38,8 +49,8 @@ export async function generateExample(schema, key = null, mongooseSchema = null)
     return schema.example;
   }
 
-  // Obtém o mapping global resolvido
-  const mapping = await getGlobalFakeMapping();
+  // Obtém o mapping global resolvido (lazy-loaded)
+  const mapping = await getFakeMapping();
 
   // Se existir um gerador para o campo, utiliza-o para gerar um exemplo realista
   if (key && mapping[key]) {
